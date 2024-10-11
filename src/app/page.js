@@ -1,76 +1,73 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import TimeLine from '../components/TimeLine';
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
-  const [status, setStatus] = useState('正在加载...');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [logs, setLogs] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef();
+  const lastMessageElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        fetchMoreMessages();
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
+
+  const fetchMessages = async (beforeId = null) => {
+    try {
+      const url = beforeId ? `/api/messages?beforeId=${beforeId}` : '/api/messages';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+      const data = await response.json();
+      return data.messages || [];
+    } catch (err) {
+      setError(err.message);
+      return [];
+    }
+  };
+
+  const fetchMoreMessages = async () => {
+    setLoading(true);
+    const oldestMessage = messages[messages.length - 1];
+    const newMessages = await fetchMessages(oldestMessage?.messageId);
+    if (newMessages.length === 0) {
+      setHasMore(false);
+    } else {
+      setMessages(prevMessages => {
+        const mergedMessages = [...prevMessages, ...newMessages];
+        const uniqueMessages = Array.from(new Map(mergedMessages.map(item => [item.messageId, item])).values());
+        return uniqueMessages.sort((a, b) => b.messageId - a.messageId);
+      });
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setStatus('开始请求频道内容...');
-        const response = await fetch('/api/channel-content');
-        if (!response.ok) {
-          throw new Error(`HTTP 状态码: ${response.status}`);
-        }
-        const data = await response.json();
-        setMessages(data.messages);
-        setLogs(data.logs);
-        setStatus('数据加载完成');
-      } catch (err) {
-        setError(err.message);
-        setStatus('加载失败');
-      }
+    async function initialFetch() {
+      const initialMessages = await fetchMessages();
+      setMessages(initialMessages.sort((a, b) => b.messageId - a.messageId));
+      setLoading(false);
     }
-    fetchData();
+    initialFetch();
   }, []);
 
+  if (error) return <div className="text-center p-4 text-red-500">Error: {error}</div>;
+
   return (
-    <main className="p-4">
-      <h1 className="text-2xl font-bold mb-4">RKPin Channel Messages</h1>
-      <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-        <h2 className="text-lg font-semibold mb-2">请求状态：</h2>
-        <p>{status}</p>
-        {error && <p className="text-red-500">错误：{error}</p>}
-      </div>
-      <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-        <h2 className="text-lg font-semibold mb-2">调试日志：</h2>
-        <ul>
-          {logs.map((log, index) => (
-            <li key={index}>{log}</li>
-          ))}
-        </ul>
-      </div>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index} className="mb-8 border p-4 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">消息 {index + 1}</h3>
-            <div className="mb-2">
-              <strong>ID:</strong> {message.messageId}
-            </div>
-            <div className="mb-2">
-              <strong>日期:</strong> {new Date(message.date).toLocaleString()}
-            </div>
-            <div className="mb-2">
-              <strong>文本内容:</strong>
-              <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{message.text}</pre>
-            </div>
-            {message.html && (
-              <div className="mb-2">
-                <strong>HTML 内容:</strong>
-                <div className="bg-gray-100 p-2 rounded" dangerouslySetInnerHTML={{ __html: message.html }} />
-              </div>
-            )}
-            <div className="mb-2">
-              <strong>原始数据:</strong>
-              <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{JSON.stringify(message, null, 2)}</pre>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">RKPin Channel Messages</h1>
+      <TimeLine messages={messages} lastMessageRef={lastMessageElementRef} />
+      {loading && <div className="text-center p-4">Loading more messages...</div>}
+      {!hasMore && <div className="text-center p-4">No more messages to load</div>}
     </main>
   );
-}
+};

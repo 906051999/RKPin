@@ -1,11 +1,13 @@
 import https from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import * as cheerio from 'cheerio';
+import fs from 'fs/promises';
+import path from 'path';
 
 const channelUrl = 'https://t.me/s/rk_pins';
 const proxyUrl = process.env.HTTPS_PROXY;
 
-export async function getChannelContent(updateStatus) {
+export async function getChannelContent(updateStatus, beforeId = null) {
   return new Promise((resolve, reject) => {
     updateStatus('开始请求频道内容...');
     const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
@@ -19,7 +21,12 @@ export async function getChannelContent(updateStatus) {
 
     updateStatus(`使用代理: ${proxyUrl ? '是' : '否'}`);
 
-    https.get(channelUrl, options, (res) => {
+    let url = channelUrl;
+    if (beforeId) {
+      url += `?before=${beforeId}`;
+    }
+
+    https.get(url, options, (res) => {
       updateStatus(`收到响应，状态码: ${res.statusCode}`);
       if (res.statusCode !== 200) {
         reject(new Error(`HTTP 状态码: ${res.statusCode}`));
@@ -33,7 +40,7 @@ export async function getChannelContent(updateStatus) {
         updateStatus(`接收数据中...（${data.length} 字节）`);
       });
 
-      res.on('end', () => {
+      res.on('end', async () => {
         updateStatus('数据接收完成，开始解析...');
         try {
           const $ = cheerio.load(data);
@@ -62,7 +69,25 @@ export async function getChannelContent(updateStatus) {
             }
           });
 
-          updateStatus(`解析完成，共获取 ${messages.length} 条消息`);
+          messages.sort((a, b) => b.messageId - a.messageId); // 倒序排列消息
+
+          // 保存到 JSON 文件
+          const jsonPath = path.join(process.cwd(), 'public', 'channel_content.json');
+          let existingData = [];
+          try {
+            const fileContent = await fs.readFile(jsonPath, 'utf-8');
+            existingData = JSON.parse(fileContent);
+          } catch (err) {
+            // 文件不存在或解析错误，使用空数组
+          }
+
+          // 合并新消息并去重
+          const mergedData = [...existingData, ...messages];
+          const uniqueData = Array.from(new Map(mergedData.map(item => [item.messageId, item])).values());
+
+          await fs.writeFile(jsonPath, JSON.stringify(uniqueData, null, 2));
+
+          updateStatus(`解析完成，共获取 ${messages.length} 条消息，保存到文件`);
           resolve(messages);
         } catch (error) {
           updateStatus(`解析出错: ${error.message}`);

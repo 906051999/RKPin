@@ -1,0 +1,110 @@
+.tgme_widget_message_bubble {
+    position: relative;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: #fff;
+    border-radius: 0.75rem;
+    max-width: 100%;
+  }
+  
+  .tgme_widget_message_bubble::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-right: 8px solid #fff;
+    border-bottom: 8px solid transparent;
+  }
+  
+  .tgme_widget_message_text {
+    font-size: 1rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+  
+  .tgme_widget_message_link_preview {
+    margin-top: 0.75rem;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .link_preview_site_name {
+    font-size: 0.875rem;
+    color: #3390ec;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .link_preview_title {
+    font-weight: bold;
+    padding: 0 0.75rem 0.5rem;
+  }
+  
+  .link_preview_description {
+    font-size: 0.875rem;
+    color: #666;
+    padding: 0 0.75rem 0.5rem;
+  }
+  
+  .link_preview_image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: cover;
+  }
+  
+  .tgme_widget_message_photo {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  .link_preview_right_image {
+    width: 25%;
+    min-width: 100px;
+    max-width: 150px;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  .message_media_not_supported_wrap {
+    background-color: #f0f2f5;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    color: #666;
+  }
+  
+  .tgme_widget_message_footer {
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: #999;
+  }
+  
+  /* 添加响应式样式 */
+  @media (max-width: 640px) {
+    .tgme_widget_message_wrap {
+      padding: 0.5rem;
+    }
+  
+    .tgme_widget_message_bubble {
+      padding: 0.5rem 0.75rem;
+    }
+  
+    .tgme_widget_message_text {
+      font-size: 0.875rem;
+    }
+  
+    .link_preview_right_image {
+      width: 30%;
+      min-width: 80px;
+    }
+  }
