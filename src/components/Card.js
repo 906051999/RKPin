@@ -1,26 +1,41 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
+import BilibiliContent from './content/BilibiliContent';
+import GitHubContent from './content/GitHubContent';
+import TelegramContent from './content/TelegramContent';
 
-const Card = ({ rawHtml }) => {
-  const sanitizeConfig = {
-    ALLOWED_TAGS: ['div', 'span', 'p', 'br', 'strong', 'em', 'u', 's', 'a', 'img', 'i', 'b', 'svg', 'path', 'g'],
-    ALLOWED_ATTR: ['class', 'href', 'target', 'src', 'alt', 'style', 'fill', 'width', 'height', 'viewBox', 'd'],
-    ADD_ATTR: ['target'],
+const Card = ({ message }) => {
+  const renderContent = () => {
+    if (!message.parsedContent) {
+      return <p className="text-gray-700">{message.content || '无内容'}</p>;
+    }
+
+    switch (message.type) {
+      case 'Bilibili':
+        return <BilibiliContent content={message.parsedContent} />;
+      case 'GitHub':
+        return <GitHubContent content={message.parsedContent} />;
+      case 'Telegram':
+        return <TelegramContent content={message.parsedContent} />;
+      default:
+        return <p className="text-gray-700">{JSON.stringify(message.parsedContent)}</p>;
+    }
   };
 
-  const extractMessageContent = (html) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const messageBubble = doc.querySelector('.tgme_widget_message_bubble');
-    return messageBubble ? messageBubble.outerHTML : '';
-  };
-
-  const messageContent = extractMessageContent(rawHtml);
-  const sanitizedHtml = DOMPurify.sanitize(messageContent, sanitizeConfig);
-  
   return (
-    <div className="card bg-white shadow-md rounded-lg p-4 mb-4 tgme_widget_message_bubble">
-      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <div className="flex justify-between items-center mb-4">
+        <span className="font-semibold text-gray-900">{message.author}</span>
+        <span className="text-sm text-gray-500">
+          {new Date(message.date).toLocaleString('zh-CN')}
+        </span>
+      </div>
+      <div className="text-sm text-gray-600 mb-3">类型: {message.type}</div>
+      {renderContent()}
+      {message.replyId && (
+        <div className="text-sm text-gray-500 mt-4">
+          回复消息ID: {message.replyId}
+        </div>
+      )}
     </div>
   );
 };

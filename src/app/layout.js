@@ -1,6 +1,5 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import "../styles/telegram.css";  // 添加这一行
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

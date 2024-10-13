@@ -10,7 +10,7 @@
 /coverage
 
 # channel content
-/public/channel_content.json
+/public/parsed_content.json
 
 # next.js
 /.next/

@@ -10,6 +10,9 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['https-proxy-agent', 'cheerio'],
   },
+  logging: {
+    level: 'verbose',
+  },
 }
 
 export default nextConfig;
