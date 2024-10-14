@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Card from './Card';
+import React, { useRef, useState } from 'react';
+import MessageList from './MessageList';
 
 const TimeLine = ({ messages, isComplete, onLoadMore, isLoading }) => {
   const [activeId, setActiveId] = useState(null);
-  const observerRef = useRef(null);
+  const timelineRef = useRef(null);
+  const contentRef = useRef(null);
 
   const groupedMessages = messages.reduce((groups, message) => {
     const date = new Date(message.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -26,59 +27,52 @@ const TimeLine = ({ messages, isComplete, onLoadMore, isLoading }) => {
     }
   };
 
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+  const handleTimelineClick = (id) => {
+    setActiveId(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
-    const cards = document.querySelectorAll('.message-card');
-    cards.forEach((card) => observerRef.current.observe(card));
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [messages]);
+  const handleCardFocus = (id) => {
+    setActiveId(id);
+  };
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex bg-gray-100 h-[calc(100vh-6rem)]">
       {/* 时间纵贯线 */}
-      <div className="w-1/4 lg:w-1/5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-white shadow-md flex flex-col">
+      <div ref={timelineRef} className="w-1/4 lg:w-1/5 h-full overflow-y-auto bg-white shadow-md flex flex-col">
         <nav className="p-4 flex-grow">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">时间线</h2>
-          <ul className="space-y-6">
+          <h2 className="text-xl font-bold mb-4 text-gray-800 sticky top-0 bg-white z-10 py-2">时间线</h2>
+          <ul className="space-y-4">
             {sortedDates.map((date) => (
               <li key={date} className="relative">
                 <div className="flex items-center mb-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  <a href={`#${date}`} className="text-sm font-semibold text-gray-700 hover:text-blue-600">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                  <button 
+                    onClick={() => handleTimelineClick(date)}
+                    className="text-sm font-semibold text-gray-700 hover:text-blue-600 transition duration-300"
+                  >
                     {date}
-                  </a>
+                  </button>
                 </div>
-                <ul className="space-y-1 ml-5 border-l border-gray-300 pl-3">
+                <ul className="space-y-1 ml-4 border-l border-gray-200 pl-2">
                   {groupedMessages[date].map((message) => (
                     <li key={message.messageId}>
-                      <a 
-                        href={`#${message.messageId}`} 
-                        className={`text-xs ${activeId === message.messageId ? 'text-blue-600 font-semibold' : 'text-gray-600'} hover:text-blue-500 truncate block py-1`}
+                      <button 
+                        onClick={() => handleTimelineClick(message.messageId)}
+                        className={`text-xs ${activeId === message.messageId ? 'text-blue-600 font-semibold' : 'text-gray-600'} hover:text-blue-500 truncate block py-1 text-left w-full transition duration-300`}
                       >
                         {getPreviewContent(message)}
-                      </a>
+                      </button>
                     </li>
                   ))}
                 </ul>
               </li>
             ))}
           </ul>
-          <div className="mt-6">
+          <div className="mt-4 sticky bottom-0 bg-white py-3">
             {!isComplete ? (
               <button
                 onClick={onLoadMore}
@@ -94,29 +88,19 @@ const TimeLine = ({ messages, isComplete, onLoadMore, isLoading }) => {
                 {isLoading ? '加载中...' : '加载更多'}
               </button>
             ) : (
-              <p className="text-center text-gray-500">无更多内容</p>
+              <p className="text-center text-gray-500 text-sm">无更多内容</p>
             )}
           </div>
         </nav>
       </div>
       
       {/* 主要内容区域 */}
-      <div className="w-3/4 lg:w-4/5 p-6 space-y-8">
-        {sortedDates.map((date) => (
-          <section key={date} id={date} className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 sticky top-16 bg-white py-4 z-10">
-              {date}
-            </h2>
-            <div className="space-y-6">
-              {groupedMessages[date].map((message) => (
-                <div id={message.messageId} key={message.messageId} className="message-card">
-                  <Card message={message} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      <MessageList 
+        ref={contentRef}
+        groupedMessages={groupedMessages}
+        sortedDates={sortedDates}
+        onCardFocus={handleCardFocus}
+      />
     </div>
   );
 };

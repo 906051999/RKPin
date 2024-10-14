@@ -6,6 +6,7 @@ const nextConfig = {
     TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     HTTP_PROXY: process.env.HTTP_PROXY,
     HTTPS_PROXY: process.env.HTTPS_PROXY,
+    LLM_API_KEY: process.env.LLM_API_KEY,
   },
   experimental: {
     serverComponentsExternalPackages: ['https-proxy-agent', 'cheerio'],

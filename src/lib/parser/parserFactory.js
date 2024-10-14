@@ -1,6 +1,6 @@
-import { parseBilibili } from './parser/bilibiliParser';
-import { parseGithub } from './parser/githubParser';
-import { parseTelegram } from './parser/telegramParser';
+import { parseBilibili } from './bilibiliParser';
+import { parseGithub } from './githubParser';
+import { parseTelegram } from './telegramParser';
 
 export function parseFactory(type) {
   switch (type.toLowerCase()) {

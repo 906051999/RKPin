@@ -3,7 +3,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
 import path from 'path';
-import { parseFactory } from './parserFactory';
+import { parseFactory } from './parser/parserFactory';
 
 const CHANNEL_URL = process.env.TELEGRAM_CHANNEL_URL;
 const PROXY_URL = process.env.HTTPS_PROXY;
