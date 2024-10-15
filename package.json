@@ -29,6 +29,8 @@
     "react-flickity-component": "^4.0.7",
     "react-h5-audio-player": "^3.9.3",
     "react-markdown": "^9.0.1",
+    "react-scrollbars-custom": "^4.1.1",
+    "react-swipeable": "^7.0.1",
     "react-tabs": "^6.0.2",
     "rehype-highlight": "^7.0.0",
     "rehype-raw": "^7.0.0",

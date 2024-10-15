@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BilibiliContent from './content/BilibiliContent';
 import GitHubContent from './content/GitHubContent';
 import TelegramContent from './content/TelegramContent';
@@ -11,35 +11,37 @@ const presetTagConfig = {
   Telegram: ['消息总结', '话题分析'],
 };
 
-const Card = ({ message }) => {
+const Card = ({ message, isVertical }) => {
   const [showChatCard, setShowChatCard] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState('');
-  const [useWebSearch, setUseWebSearch] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [hasHistory, setHasHistory] = useState(false);
+
+  useEffect(() => {
+    // 从 localStorage 加载对话内容
+    const storedMessages = localStorage.getItem(`chat_${message.messageId}`);
+    if (storedMessages) {
+      const parsedMessages = JSON.parse(storedMessages);
+      setChatMessages(parsedMessages);
+      setHasHistory(parsedMessages.length > 0);
+    }
+  }, [message.messageId]);
 
   const handleAIChat = () => {
-    if (isProcessing) {
-      abortChat();
-      setIsProcessing(false);
-      setStatus('已中断');
-      setShowChatCard(false);
-      return;
-    }
-
-    if (showChatCard) {
-      setShowChatCard(false);
-      setStatus('');
-      return;
-    }
-
-    setIsProcessing(true);
-    setStatus('准备对话');
-    setShowChatCard(true);
+    setShowChatCard(!showChatCard);
   };
 
-  const handleChatComplete = () => {
-    setStatus('回复完成');
-    setIsProcessing(false);
+  const handleClearChat = () => {
+    // 清除 localStorage 中的对话内容
+    localStorage.removeItem(`chat_${message.messageId}`);
+    setChatMessages([]);
+    setHasHistory(false);
+  };
+
+  const handleUpdateChat = (newMessages) => {
+    // 更新 localStorage 中的对话内容
+    localStorage.setItem(`chat_${message.messageId}`, JSON.stringify(newMessages));
+    setChatMessages(newMessages);
+    setHasHistory(newMessages.length > 0);
   };
 
   const renderContent = () => {
@@ -78,38 +80,32 @@ const Card = ({ message }) => {
           回复消息ID: {message.replyId}
         </div>
       )}
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex items-center">
-          <label className="flex items-center mr-2">
-            <input
-              type="checkbox"
-              checked={useWebSearch}
-              onChange={(e) => setUseWebSearch(e.target.checked)}
-              className="mr-1"
-            />
-            <span className="text-sm">联网搜索</span>
-          </label>
-          {status && <span className="text-sm text-gray-600 mr-2">{status}</span>}
+      
+      {!isVertical && (
+        <div className="flex justify-end items-center mt-4">
+          <button
+            onClick={handleAIChat}
+            className={`${
+              showChatCard ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+            } text-white font-semibold py-1 px-2 rounded text-sm transition duration-300 ease-in-out flex items-center`}
+          >
+            {showChatCard ? '关闭对话' : 'AI对话'}
+            {hasHistory && !showChatCard && (
+              <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-2 h-2"></span>
+            )}
+          </button>
         </div>
-        <button
-          onClick={handleAIChat}
-          className={`${
-            isProcessing ? 'bg-red-500 hover:bg-red-600' : 
-            showChatCard ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
-          } text-white font-semibold py-1 px-2 rounded text-sm transition duration-300 ease-in-out`}
-        >
-          {isProcessing ? '停止' : showChatCard ? '关闭对话' : 'AI对话'}
-        </button>
-      </div>
-      {showChatCard && (
-        <div className="mt-4">
+      )}
+      
+      {(showChatCard || isVertical) && (
+        <div className={isVertical ? "mt-4" : "mt-4"}>
           <ChatCard 
             content={message.parsedContent}
             contentType={message.type}
-            onComplete={handleChatComplete}
-            setStatus={setStatus}
-            useWebSearch={useWebSearch}
             presetTags={getPresetTags()}
+            messages={chatMessages}
+            onUpdateMessages={handleUpdateChat}
+            onClearChat={handleClearChat}
           />
         </div>
       )}

@@ -22,11 +22,12 @@ const presetTagConfig = {
   ],
 };
 
-const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, presetTags }) => {
-  const [messages, setMessages] = useState([]);
+const ChatCard = ({ content, contentType, presetTags, messages, onUpdateMessages, onClearChat }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [status, setStatus] = useState('');
+  const [useWebSearch, setUseWebSearch] = useState(false);
   const chatContainerRef = useRef(null);
   const abortControllerRef = useRef(null);
   const startTimeRef = useRef(null);
@@ -60,8 +61,9 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
     setIsLoading(true);
     setStatus('等待回复');
     setElapsedTime(0);
-    const newMessages = [...messages, { role: 'user', content: message }];
-    setMessages(newMessages);
+    const systemPrompt = { role: 'system', content: '你是一个智能助手，能够理解并回答各种问题。请尽可能提供准确、有帮助的回答。' };
+    const newMessages = [systemPrompt, ...messages, { role: 'user', content: message }];
+    onUpdateMessages(newMessages);
     setInputMessage('');
 
     if (abortControllerRef.current) {
@@ -75,7 +77,8 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
       
       if (response.choices && response.choices.length > 0 && response.choices[0].message) {
         const assistantMessage = response.choices[0].message.content;
-        setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
+        const updatedMessages = [...newMessages, { role: 'assistant', content: assistantMessage }];
+        onUpdateMessages(updatedMessages);
         setStatus('回复完成');
       } else {
         throw new Error('Invalid response format');
@@ -91,23 +94,8 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
       }
     } finally {
       setIsLoading(false);
-      onComplete();
     }
-  }, [messages, onComplete, setStatus, isLoading, useWebSearch]);
-
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
+  }, [messages, setStatus, isLoading, useWebSearch, onUpdateMessages]);
 
   const handleAbort = () => {
     if (abortControllerRef.current) {
@@ -115,6 +103,12 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
       setStatus('请求已中止');
       setIsLoading(false);
     }
+  };
+
+  const handleClearChat = () => {
+    onClearChat();
+    setInputMessage('');
+    setStatus('');
   };
 
   const handlePresetTag = async (tag) => {
@@ -169,16 +163,37 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 max-h-96 flex flex-col">
-      <div className="mb-2 flex flex-wrap">
-        {presetTags.map((tag, index) => (
-          <button
-            key={index}
-            onClick={() => handlePresetTag(tag)}
-            className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded"
-          >
-            {tag}
-          </button>
-        ))}
+      <div className="mb-2 flex flex-wrap justify-between items-center">
+        <div>
+          {presetTags.map((tag, index) => (
+            <button
+              key={index}
+              onClick={() => handlePresetTag(tag)}
+              className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center">
+          <label className="flex items-center mr-2">
+            <input
+              type="checkbox"
+              checked={useWebSearch}
+              onChange={(e) => setUseWebSearch(e.target.checked)}
+              className="mr-1"
+            />
+            <span className="text-sm">联网搜索</span>
+          </label>
+          {messages.length > 0 && (
+            <button
+              onClick={handleClearChat}
+              className="bg-red-500 text-white px-2 py-1 rounded text-sm"
+            >
+              清空对话
+            </button>
+          )}
+        </div>
       </div>
       <div ref={chatContainerRef} className="flex-grow overflow-y-auto mb-4">
         {messages.map((msg, index) => (
@@ -242,6 +257,7 @@ const ChatCard = ({ content, contentType, onComplete, setStatus, useWebSearch, p
           </button>
         )}
       </div>
+      {status && <div className="text-sm text-gray-600 mt-2">{status}</div>}
     </div>
   );
 };

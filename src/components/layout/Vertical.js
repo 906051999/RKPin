@@ -91,8 +91,7 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
             </div>
           )}
         </div>
-        
-        <div className="mt-40 flex-grow overflow-y-auto">
+        <div className="mt-20 flex-grow overflow-y-auto">
           {sortedDates.map((date, index) => (
             <TabPanel key={date}>
               <Flickity
@@ -103,7 +102,7 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
               >
                 {groupedMessages[date].map((message) => (
                   <div key={message.messageId} className="w-full px-4 py-2">
-                    <Card message={message} />
+                    <Card message={message} isVertical={true} />
                   </div>
                 ))}
               </Flickity>
