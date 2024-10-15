@@ -10,6 +10,8 @@ export default function Home() {
   const [isComplete, setIsComplete] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
   const [isVertical, setIsVertical] = useState(false);
+  const [layoutDetermined, setLayoutDetermined] = useState(false);
+  const [showChatBar, setShowChatBar] = useState(false);
 
   const fetchTotalMessages = useCallback(async () => {
     try {
@@ -54,6 +56,7 @@ export default function Home() {
     
     const checkOrientation = () => {
       setIsVertical(window.innerHeight > window.innerWidth);
+      setLayoutDetermined(true);
     };
 
     checkOrientation();
@@ -72,11 +75,30 @@ export default function Home() {
     }
   };
 
+  const toggleChatBar = () => {
+    setShowChatBar(prev => !prev);
+  };
+
+  if (!layoutDetermined) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">RKPin</h1>
+          <a 
+            href="https://github.com/906051999/rkpin" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-3xl font-bold text-gray-900 hover:text-blue-600 transition duration-300"
+          >
+            RKPin
+          </a>
           <div className="flex items-center space-x-4">
             <span className="text-gray-600">加载消息 {totalMessages} 条</span>
             {isComplete ? (
@@ -123,6 +145,8 @@ export default function Home() {
           fetchContent={fetchContent}
           fetchTotalMessages={fetchTotalMessages}
           handleRefresh={handleRefresh}
+          showChatBar={showChatBar}
+          toggleChatBar={toggleChatBar}
         />
       )}
     </div>

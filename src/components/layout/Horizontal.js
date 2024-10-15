@@ -3,7 +3,7 @@ import TimeLine from '@/components/TimeLine';
 import MessageList from '@/components/MessageList';
 import ChatBar from '@/components/ChatBar';
 
-export default function Horizontal({ content, isLoading, isComplete, totalMessages, fetchContent, fetchTotalMessages, handleRefresh }) {
+export default function Horizontal({ content, isLoading, isComplete, totalMessages, fetchContent, fetchTotalMessages, handleRefresh, showChatBar, toggleChatBar }) {
   const [activeId, setActiveId] = useState(null);
   const contentRef = useRef(null);
 
@@ -55,7 +55,13 @@ export default function Horizontal({ content, isLoading, isComplete, totalMessag
       </main>
       <aside className="w-full lg:w-1/3 lg:min-w-[300px] lg:max-w-[400px] order-1 lg:order-2">
         <div className="lg:sticky lg:top-24">
-          <ChatBar />
+          <button
+            onClick={toggleChatBar}
+            className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
+          >
+            {showChatBar ? '隐藏聊天栏' : '显示聊天栏'}
+          </button>
+          {showChatBar && <ChatBar />}
         </div>
       </aside>
     </div>
