@@ -1,6 +1,6 @@
 let abortController = null;
 
-async function chatWithGLM4(messages, useWebSearch = false, customSearchQuery = null) {
+async function chatWithGLM4(messages, useWebSearch = false, customSearchQuery = null, useStream = true) {
   try {
     // 如果存在之前的 AbortController，先中止它
     if (abortController) {
@@ -20,7 +20,7 @@ async function chatWithGLM4(messages, useWebSearch = false, customSearchQuery = 
       body: JSON.stringify({
         model: "glm-4-flash",
         messages: messages,
-        stream: true,
+        stream: useStream,
         tools: useWebSearch ? [{
           type: "web_search",
           web_search: {
@@ -28,14 +28,14 @@ async function chatWithGLM4(messages, useWebSearch = false, customSearchQuery = 
           }
         }] : undefined
       }),
-      signal: signal // 添加 signal 到 fetch 请求
+      signal: signal
     });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return response.body;
+    return useStream ? response.body : await response.json();
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('Fetch aborted');

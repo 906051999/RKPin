@@ -1,14 +1,26 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import TimeLine from '@/components/TimeLine';
-import AICard from '@/components/AICard';
+import MessageList from '@/components/MessageList';
+import ChatBar from '@/components/ChatBar';
 
 export default function Home() {
   const [content, setContent] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
+
+  const fetchTotalMessages = useCallback(async () => {
+    try {
+      const response = await fetch('/api/total');
+      if (!response.ok) throw new Error('Failed to fetch total messages');
+      const { totalMessages } = await response.json();
+      setTotalMessages(totalMessages);
+    } catch (error) {
+      console.error('Error fetching total messages:', error);
+    }
+  }, []);
 
   const fetchContent = useCallback(async (refresh = false) => {
     setIsLoading(true);
@@ -25,7 +37,7 @@ export default function Home() {
           return Array.from(new Map(uniqueData.map(item => [item.messageId, item])).values());
         });
         setIsComplete(complete);
-        setTotalMessages(totalMessages); 
+        setTotalMessages(totalMessages);
       } else {
         console.error('Received invalid content format:', newContent);
       }
@@ -38,16 +50,42 @@ export default function Home() {
 
   useEffect(() => {
     fetchContent();
+    fetchTotalMessages(); // 初始加载时获取总消息数
   }, []);
 
   const handleRefresh = () => {
     fetchContent(true);
+    fetchTotalMessages(); // 刷新时更新总消息数
   };
 
   const handleLoadMore = () => {
     if (!isComplete && !isLoading) {
       fetchContent();
     }
+  };
+
+  const [activeId, setActiveId] = useState(null);
+  const contentRef = useRef(null);
+
+  const groupedMessages = content.reduce((groups, message) => {
+    const date = new Date(message.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(message);
+    return groups;
+  }, {});
+
+  const sortedDates = Object.keys(groupedMessages).sort((a, b) => new Date(b) - new Date(a));
+
+  const handleTimelineClick = (id) => {
+    setActiveId(id);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleCardFocus = (id) => {
+    setActiveId(id);
   };
 
   return (
@@ -76,17 +114,28 @@ export default function Home() {
               <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
             </div>
           ) : (
-            <TimeLine 
-              messages={content} 
-              isComplete={isComplete} 
-              onLoadMore={handleLoadMore} 
-              isLoading={isLoading} 
-            />
+            <div className="flex bg-gray-100 h-[calc(100vh-6rem)]">
+              <TimeLine 
+                groupedMessages={groupedMessages}
+                sortedDates={sortedDates}
+                activeId={activeId}
+                onTimelineClick={handleTimelineClick}
+                isComplete={isComplete}
+                onLoadMore={handleLoadMore}
+                isLoading={isLoading}
+              />
+              <MessageList 
+                ref={contentRef}
+                groupedMessages={groupedMessages}
+                sortedDates={sortedDates}
+                onCardFocus={handleCardFocus}
+              />
+            </div>
           )}
         </main>
         <aside className="w-full lg:w-1/3 lg:min-w-[300px] lg:max-w-[400px] order-1 lg:order-2">
           <div className="lg:sticky lg:top-24">
-            <AICard />
+            <ChatBar />
           </div>
         </aside>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { chatWithGLM4, abortChat } from '@/lib/llm/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github.css';
 
-export default function AICard() {
+export default function ChatBar() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +16,8 @@ export default function AICard() {
   const readerRef = useRef(null);
   const chatContainerRef = useRef(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [isDebugMode, setIsDebugMode] = useState(false);
 
   useEffect(() => {
     setMessages([
@@ -43,7 +45,7 @@ export default function AICard() {
     setInput('');
 
     try {
-      const stream = await chatWithGLM4([...messages, userMessage], useWebSearch);
+      const stream = await chatWithGLM4([...messages, userMessage], useWebSearch, null, true);
       const reader = stream.getReader();
       readerRef.current = reader;
 
@@ -126,21 +128,111 @@ export default function AICard() {
   };
 
   const handleResetConversation = () => {
-    setMessages([{ role: 'system', content: systemMessage }]);
+    if (isDebugMode) {
+      setLogs([]);
+    } else {
+      setMessages([{ role: 'system', content: systemMessage }]);
+      setCurrentAssistantMessage('');
+      setInput('');
+    }
+  };
+
+  const handleAISummary = async (readmeContent, repoTitle) => {
+    setIsLoading(true);
+    setIsStreaming(true);
+    const userMessage = { 
+      role: 'user', 
+      content: `请总结以下GitHub项目的README内容，重点概括项目的主要功能、特性和用途：\n\n项目名称：${repoTitle}\n\nREADME内容：\n${readmeContent}` 
+    };
+    setMessages(prev => [...prev, userMessage]);
     setCurrentAssistantMessage('');
     setInput('');
+
+    try {
+      const stream = await chatWithGLM4([...messages, userMessage], false);
+      const reader = stream.getReader();
+      readerRef.current = reader;
+
+      let fullMessage = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        lines.forEach(line => {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              if (fullMessage) {
+                setMessages(prev => [...prev, { role: 'assistant', content: fullMessage }]);
+                setCurrentAssistantMessage('');
+              }
+            } else {
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0].delta.content || '';
+                if (content) {
+                  fullMessage += content;
+                  setCurrentAssistantMessage(fullMessage);
+                }
+              } catch (error) {
+                console.error('Error parsing JSON:', error);
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Chat error:', error);
+        setMessages(prev => [...prev, { role: 'system', content: '对话出错,请稍后再试。' }]);
+      }
+    } finally {
+      setIsLoading(false);
+      setIsStreaming(false);
+    }
   };
+
+  // Add this function to handle logging
+  const handleLog = useCallback((message) => {
+    if (isDebugMode) {
+      setLogs(prevLogs => [...prevLogs, { type: 'log', content: message }]);
+    }
+  }, [isDebugMode]);
+
+  // Override console.log
+  useEffect(() => {
+    const originalLog = console.log;
+    console.log = (...args) => {
+      originalLog(...args);
+      handleLog(args.join(' '));
+    };
+    return () => {
+      console.log = originalLog;
+    };
+  }, [handleLog]);
 
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">AI 助手</h2>
-        <button
-          onClick={handleResetConversation}
-          className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300"
-        >
-          重置对话
-        </button>
+        <div className="flex items-center space-x-2">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={isDebugMode}
+              onChange={(e) => setIsDebugMode(e.target.checked)}
+              className="mr-2"
+            />
+            调试模式
+          </label>
+          <button
+            onClick={handleResetConversation}
+            className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300"
+          >
+            {isDebugMode ? '清理日志' : '重置对话'}
+          </button>
+        </div>
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">系统消息</label>
@@ -158,6 +250,12 @@ export default function AICard() {
         {messages.slice(1).map(renderMessage)}
         {currentAssistantMessage && renderMessage({ role: 'assistant', content: currentAssistantMessage }, messages.length)}
         {isLoading && <div className="text-center text-gray-500">正在思考...</div>}
+        {/* Add this section to display logs */}
+        {isDebugMode && logs.map((log, index) => (
+          <div key={index} className="text-xs text-gray-500 mb-1">
+            {log.content}
+          </div>
+        ))}
       </div>
       <div className="flex items-center space-x-2 mb-4">
         <input
