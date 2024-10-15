@@ -91,7 +91,6 @@ export async function getChannelContent(updateStatus = console.log, before = '')
     const messages = $('.tgme_widget_message_wrap');
 
     updateStatus(`找到的消息包装器数量: ${messages.length}`);
-    updateStatus(`页面标题: ${$('title').text()}`);
 
     if (messages.length === 0) {
       updateStatus(`警告: 没有找到任何消息。页面HTML: ${$.html()}`);
@@ -101,40 +100,14 @@ export async function getChannelContent(updateStatus = console.log, before = '')
       messages.map((_, element) => parseMessage($, element, updateStatus)).get()
     );
 
-    // 过滤掉解析失败的消息（null值）
     const validMessages = parsedMessages.filter(msg => msg !== null);
 
     updateStatus(`成功解析的消息数量: ${validMessages.length}`);
 
-    let existingContent = [];
-    try {
-      const fileContent = await fs.readFile(JSON_FILE_PATH, 'utf-8');
-      existingContent = JSON.parse(fileContent);
-      updateStatus(`从文件中读取到 ${existingContent.length} 条现有消息`);
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        updateStatus('文件不存在，将创建新文件');
-      } else {
-        updateStatus(`读取现有内容时出错: ${error.message}`);
-      }
-    }
+    // 检查是否存在 messageId 为 1 的内容
+    const isComplete = validMessages.some(msg => msg.messageId === '1');
 
-    const newContent = validMessages.filter(msg => 
-      !existingContent.some(existing => existing.messageId === msg.messageId)
-    );
-
-    updateStatus(`新消息数量: ${newContent.length}`);
-
-    const updatedContent = [...existingContent, ...newContent]
-      .sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-
-    await fs.writeFile(JSON_FILE_PATH, JSON.stringify(updatedContent, null, 2));
-
-    updateStatus(`解析完成，共获取 ${newContent.length} 条新消息，保存到文件`);
-    updateStatus(`文件中总消息数: ${updatedContent.length}`);
-
-    const isComplete = updatedContent.some(msg => msg.messageId === '1');
-    return { content: updatedContent, isComplete };
+    return { content: validMessages, isComplete };
   } catch (error) {
     updateStatus(`获取频道内容出错: ${error.message}`);
     throw error;

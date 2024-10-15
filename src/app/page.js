@@ -12,43 +12,56 @@ export default function Home() {
   const [isVertical, setIsVertical] = useState(false);
   const [layoutDetermined, setLayoutDetermined] = useState(false);
   const [showChatBar, setShowChatBar] = useState(false);
+  const [lastMessageId, setLastMessageId] = useState(null);
 
-  const fetchTotalMessages = useCallback(async () => {
-    try {
-      const response = await fetch('/api/total');
-      if (!response.ok) throw new Error('Failed to fetch total messages');
-      const { totalMessages } = await response.json();
-      setTotalMessages(totalMessages);
-    } catch (error) {
-      console.error('Error fetching total messages:', error);
-    }
+  const fetchTotalMessages = useCallback(() => {
+    const storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
+    setTotalMessages(storedContent.length);
   }, []);
 
   const fetchContent = useCallback(async (refresh = false) => {
     setIsLoading(true);
     try {
-      const lastMessageId = content.length > 0 ? content[content.length - 1].messageId : '';
-      const url = `/api/${refresh ? 'refresh' : 'content'}${!refresh && lastMessageId ? `?before=${lastMessageId}` : ''}`;
+      let storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
+      
+      if (refresh) {
+        storedContent = [];
+        setLastMessageId(null);
+      }
+
+      const url = refresh || storedContent.length === 0
+        ? '/api/refresh'
+        : `/api/content?before=${lastMessageId}`;
+
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
-      const { content: newContent, isComplete: complete, totalMessages } = await response.json();
+      const { content: newContent, isComplete: complete } = await response.json();
       
-      if (Array.isArray(newContent)) {
-        setContent(prevContent => {
-          const uniqueData = refresh ? newContent : [...prevContent, ...newContent];
-          return Array.from(new Map(uniqueData.map(item => [item.messageId, item])).values());
-        });
-        setIsComplete(complete);
-        setTotalMessages(totalMessages);
-      } else {
-        console.error('Received invalid content format:', newContent);
+      // 去重处理
+      const uniqueContent = [...storedContent, ...newContent].reduce((acc, current) => {
+        const x = acc.find(item => item.messageId === current.messageId);
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, []);
+
+      const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
+      localStorage.setItem('parsed_content', JSON.stringify(sortedContent));
+      setContent(sortedContent);
+      setTotalMessages(sortedContent.length);
+      setIsComplete(complete);
+      
+      if (sortedContent.length > 0) {
+        setLastMessageId(sortedContent[sortedContent.length - 1].messageId);
       }
     } catch (error) {
       console.error('Error fetching content:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [content]);
+  }, [lastMessageId]);
 
   useEffect(() => {
     fetchContent();
@@ -66,17 +79,23 @@ export default function Home() {
 
   const handleRefresh = () => {
     fetchContent(true);
-    fetchTotalMessages(); // 刷新时更新总消息数
   };
 
   const handleLoadMore = () => {
     if (!isComplete && !isLoading) {
-      fetchContent();
+      fetchContent(false);
     }
   };
 
   const toggleChatBar = () => {
     setShowChatBar(prev => !prev);
+  };
+
+  const handleClearLocalStorage = () => {
+    localStorage.removeItem('parsed_content');
+    setContent([]);
+    setTotalMessages(0);
+    setIsComplete(false);
   };
 
   if (!layoutDetermined) {
@@ -126,6 +145,12 @@ export default function Home() {
                 {isLoading ? '加载中...' : '加载更多'}
               </button>
             )}
+            <button
+              onClick={handleClearLocalStorage}
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
+            >
+              清除缓存
+            </button>
           </div>
         </div>
       </header>
