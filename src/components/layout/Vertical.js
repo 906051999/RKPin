@@ -4,6 +4,7 @@ import 'react-tabs/style/react-tabs.css';
 import Card from '@/components/Card';
 import Flickity from 'react-flickity-component';
 import 'flickity/css/flickity.css';
+import { debounce } from 'lodash';
 
 export default function Vertical({ content, isLoading, isComplete, totalMessages }) {
   const [groupedMessages, setGroupedMessages] = useState({});
@@ -42,9 +43,12 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
     }
   };
 
-  const handleSlideChange = useCallback((index) => {
-    setActiveSlideIndex(index);
-  }, []);
+  const handleSlideChange = useCallback(
+    debounce((index) => {
+      setActiveSlideIndex(index);
+    }, 150),
+    []
+  );
 
   const handleDotClick = (index) => {
     setActiveSlideIndex(index);
@@ -62,13 +66,14 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <Tabs selectedIndex={tabIndex} onSelect={handleTabSelect} className="flex flex-col h-full">
-        <div className="fixed top-16 left-0 right-0 z-10 bg-white shadow-md">
+      {/* 顶部标签栏 */}
+      <div className="fixed top-30 left-0 right-0 z-10 bg-white shadow-md">
+        <Tabs selectedIndex={tabIndex} onSelect={handleTabSelect}>
           <TabList className="flex overflow-x-auto py-3 px-4">
             {sortedDates.map((date) => (
               <Tab
                 key={date}
-                className="px-4 py-2 text-sm font-medium cursor-pointer"
+                className="px-4 py-2 text-sm font-medium cursor-pointer whitespace-nowrap"
                 selectedClassName="text-blue-600 border-b-2 border-blue-600"
               >
                 {date.split('年')[1].replace('月', '/').replace('日', '')}
@@ -90,8 +95,12 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
               ))}
             </div>
           )}
-        </div>
-        <div className="mt-20 flex-grow overflow-y-auto">
+        </Tabs>
+      </div>
+
+      {/* 内容区域 */}
+      <div className="flex-grow overflow-y-auto mt-24">
+        <Tabs selectedIndex={tabIndex} onSelect={handleTabSelect}>
           {sortedDates.map((date, index) => (
             <TabPanel key={date}>
               <Flickity
@@ -108,8 +117,8 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
               </Flickity>
             </TabPanel>
           ))}
-        </div>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }
