@@ -1,11 +1,13 @@
 import React from 'react';
 
 const BilibiliContent = ({ content }) => {
+  const proxyImageUrl = (url) => `/api/image?url=${encodeURIComponent(url)}`;
+
   return (
     <div className="bilibili-content">
       <h3 className="text-lg font-semibold">{content.title || '无标题'}</h3>
       {content.previewImage && (
-        <img src={content.previewImage} alt={content.title} className="mt-2 max-w-full h-auto" />
+        <img src={proxyImageUrl(content.previewImage)} alt={content.title} className="mt-2 max-w-full h-auto" />
       )}
       <p className="text-sm text-gray-600">{content.description || '无描述'}</p>
 

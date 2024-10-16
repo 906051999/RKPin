@@ -14,6 +14,17 @@ const nextConfig = {
   logging: {
     level: 'verbose',
   },
+  images: {
+    domains: [
+      'cdn1.cdn-telegram.org',
+      'cdn2.cdn-telegram.org',
+      'cdn3.cdn-telegram.org',
+      'cdn4.cdn-telegram.org',
+      'cdn5.cdn-telegram.org',
+      'i0.hdslb.com',
+      // 添加其他可能的 CDN 域名
+    ],
+  },
 }
 
 export default nextConfig;

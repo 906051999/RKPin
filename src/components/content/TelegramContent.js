@@ -1,6 +1,8 @@
 import React from 'react';
 
 const TelegramContent = ({ content }) => {
+  const proxyImageUrl = (url) => `/api/image?url=${encodeURIComponent(url)}`;
+
   return (
     <div className="telegram-content">
       {content.forwardFrom && (
@@ -13,7 +15,7 @@ const TelegramContent = ({ content }) => {
         />
       )}
       {content.previewImage && (
-        <img src={content.previewImage} alt="Telegram preview" className="mt-2 max-w-full h-auto rounded-lg" />
+        <img src={proxyImageUrl(content.previewImage)} alt="Telegram preview" className="mt-2 max-w-full h-auto rounded-lg" />
       )}
     </div>
   );
