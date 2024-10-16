@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import TimeLine from '@/components/TimeLine';
-import MessageList from '@/components/MessageList';
-import ChatBar from '@/components/ChatBar';
+import TimeLine from '@/components/horizontal/TimeLine';
+import MessageList from '@/components/horizontal/MessageList';
+import ChatBar from '@/components/horizontal/ChatBar';
 
 export default function Horizontal({ content, isLoading, isComplete, totalMessages, fetchContent, fetchTotalMessages, handleRefresh, showChatBar, toggleChatBar }) {
+  console.log("HorizontalLayout content:", content);
+  console.log("HorizontalLayout isLoading:", isLoading);
+
   const [activeId, setActiveId] = useState(null);
   const contentRef = useRef(null);
 

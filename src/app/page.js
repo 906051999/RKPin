@@ -1,72 +1,26 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Horizontal from '@/components/layout/Horizontal';
-import Vertical from '@/components/layout/Vertical';
+import { useState, useEffect, useContext } from 'react';
+import { AppContext, AppProvider } from '@/context/AppContext';
+import Layout from '@/components/layout/Layout';
+import Header from '@/components/common/Header';
 
-export default function Home() {
-  const [content, setContent] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isComplete, setIsComplete] = useState(false);
-  const [totalMessages, setTotalMessages] = useState(0);
+const Home = () => {
   const [isVertical, setIsVertical] = useState(false);
   const [layoutDetermined, setLayoutDetermined] = useState(false);
   const [showChatBar, setShowChatBar] = useState(false);
-  const [lastMessageId, setLastMessageId] = useState(null);
 
-  const fetchTotalMessages = useCallback(() => {
-    const storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
-    setTotalMessages(storedContent.length);
-  }, []);
-
-  const fetchContent = useCallback(async (refresh = false) => {
-    setIsLoading(true);
-    try {
-      let storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
-      
-      if (refresh) {
-        storedContent = [];
-        setLastMessageId(null);
-      }
-
-      const url = refresh || storedContent.length === 0
-        ? '/api/refresh'
-        : `/api/content?before=${lastMessageId}`;
-
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const { content: newContent, isComplete: complete } = await response.json();
-      
-      // 去重处理
-      const uniqueContent = [...storedContent, ...newContent].reduce((acc, current) => {
-        const x = acc.find(item => item.messageId === current.messageId);
-        if (!x) {
-          return acc.concat([current]);
-        } else {
-          return acc;
-        }
-      }, []);
-
-      const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-      localStorage.setItem('parsed_content', JSON.stringify(sortedContent));
-      setContent(sortedContent);
-      setTotalMessages(sortedContent.length);
-      setIsComplete(complete);
-      
-      if (sortedContent.length > 0) {
-        setLastMessageId(sortedContent[sortedContent.length - 1].messageId);
-      }
-    } catch (error) {
-      console.error('Error fetching content:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [lastMessageId]);
+  const {
+    content,
+    isLoading,
+    isComplete,
+    totalMessages,
+    handleRefresh,
+    handleLoadMore,
+    handleClearLocalStorage
+  } = useContext(AppContext);
 
   useEffect(() => {
-    fetchContent();
-    fetchTotalMessages();
-    
     const checkOrientation = () => {
       setIsVertical(window.innerHeight > window.innerWidth);
       setLayoutDetermined(true);
@@ -77,25 +31,8 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
 
-  const handleRefresh = () => {
-    fetchContent(true);
-  };
-
-  const handleLoadMore = () => {
-    if (!isComplete && !isLoading) {
-      fetchContent(false);
-    }
-  };
-
   const toggleChatBar = () => {
     setShowChatBar(prev => !prev);
-  };
-
-  const handleClearLocalStorage = () => {
-    localStorage.removeItem('parsed_content');
-    setContent([]);
-    setTotalMessages(0);
-    setIsComplete(false);
   };
 
   if (!layoutDetermined) {
@@ -108,72 +45,31 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <a 
-            href="https://github.com/906051999/rkpin" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-3xl font-bold text-gray-900 hover:text-blue-600 transition duration-300"
-          >
-            RKPin
-          </a>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-600">加载消息 {totalMessages} 条</span>
-            {isComplete ? (
-              <button
-                onClick={handleRefresh}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                </svg>
-                刷新内容
-              </button>
-            ) : (
-              <button
-                onClick={handleLoadMore}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : null}
-                {isLoading ? '加载中...' : '加载更多'}
-              </button>
-            )}
-            <button
-              onClick={handleClearLocalStorage}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
-            >
-              清除缓存
-            </button>
-          </div>
-        </div>
-      </header>
-      {isVertical ? (
-        <Vertical 
-          content={content}
-          isLoading={isLoading}
-          isComplete={isComplete}
-          totalMessages={totalMessages}
-        />
-      ) : (
-        <Horizontal 
-          content={content}
-          isLoading={isLoading}
-          isComplete={isComplete}
-          totalMessages={totalMessages}
-          fetchContent={fetchContent}
-          fetchTotalMessages={fetchTotalMessages}
-          handleRefresh={handleRefresh}
-          showChatBar={showChatBar}
-          toggleChatBar={toggleChatBar}
-        />
-      )}
+      <Header
+        totalMessages={totalMessages}
+        isComplete={isComplete}
+        isLoading={isLoading}
+        handleRefresh={handleRefresh}
+        handleLoadMore={handleLoadMore}
+        handleClearLocalStorage={handleClearLocalStorage}
+      />
+      <Layout
+        isVertical={isVertical}
+        content={content}
+        isLoading={isLoading}
+        isComplete={isComplete}
+        totalMessages={totalMessages}
+        showChatBar={showChatBar}
+        toggleChatBar={toggleChatBar}
+      />
     </div>
+  );
+};
+
+export default function HomeWrapper() {
+  return (
+    <AppProvider>
+      <Home />
+    </AppProvider>
   );
 }

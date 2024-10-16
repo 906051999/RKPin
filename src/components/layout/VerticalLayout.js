@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Tabs, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import Card from '@/components/Card';
+import Card from '@/components/common/Card';
 import Flickity from 'react-flickity-component';
 import 'flickity/css/flickity.css';
 import { debounce } from 'lodash';
+import DateTabs from '@/components/vertical/DateTabs';
+import DotIndicator from '@/components/vertical/DotIndicator';
 
 export default function Vertical({ content, isLoading, isComplete, totalMessages }) {
   const [groupedMessages, setGroupedMessages] = useState({});
@@ -69,31 +71,17 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
       {/* 顶部标签栏 */}
       <div className="fixed top-30 left-0 right-0 z-10 bg-white shadow-md">
         <Tabs selectedIndex={tabIndex} onSelect={handleTabSelect}>
-          <TabList className="flex overflow-x-auto py-3 px-4">
-            {sortedDates.map((date) => (
-              <Tab
-                key={date}
-                className="px-4 py-2 text-sm font-medium cursor-pointer whitespace-nowrap"
-                selectedClassName="text-blue-600 border-b-2 border-blue-600"
-              >
-                {date.split('年')[1].replace('月', '/').replace('日', '')}
-              </Tab>
-            ))}
-          </TabList>
+          <DateTabs 
+            sortedDates={sortedDates} 
+            selectedIndex={tabIndex} 
+            onSelect={handleTabSelect} 
+          />
           {sortedDates[tabIndex] && (
-            <div className="flex justify-center bg-gray-50 py-2">
-              {groupedMessages[sortedDates[tabIndex]].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleDotClick(index)}
-                  className={`mx-1 w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === activeSlideIndex
-                      ? 'bg-blue-600 w-4'
-                      : 'bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
+            <DotIndicator
+              messages={groupedMessages[sortedDates[tabIndex]]}
+              activeSlideIndex={activeSlideIndex}
+              handleDotClick={handleDotClick}
+            />
           )}
         </Tabs>
       </div>

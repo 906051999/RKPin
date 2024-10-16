@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import Card from './Card';
+import Card from '@/components/common/Card';
 
 const MessageList = React.forwardRef(({ groupedMessages, sortedDates, onCardFocus }, ref) => {
   const messageRefs = useRef({});

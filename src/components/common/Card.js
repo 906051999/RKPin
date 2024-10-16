@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import BilibiliContent from './content/BilibiliContent';
-import GitHubContent from './content/GitHubContent';
-import TelegramContent from './content/TelegramContent';
-import ChatCard from './ChatCard';
+import BilibiliContent from '../common/content/BilibiliContent';
+import GitHubContent from '../common/content/GitHubContent';
+import TelegramContent from '../common/content/TelegramContent';
+import ChatPart from './ChatPart';
 import { abortChat } from '@/lib/llm/chat';
 
 const presetTagConfig = {
@@ -12,7 +12,7 @@ const presetTagConfig = {
 };
 
 const Card = ({ message, isVertical }) => {
-  const [showChatCard, setShowChatCard] = useState(false);
+  const [showChatPart, setShowChatPart] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [hasHistory, setHasHistory] = useState(false);
 
@@ -27,7 +27,7 @@ const Card = ({ message, isVertical }) => {
   }, [message.messageId]);
 
   const handleAIChat = () => {
-    setShowChatCard(!showChatCard);
+    setShowChatPart(!showChatPart);
   };
 
   const handleClearChat = () => {
@@ -86,20 +86,20 @@ const Card = ({ message, isVertical }) => {
           <button
             onClick={handleAIChat}
             className={`${
-              showChatCard ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+              showChatPart ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
             } text-white font-semibold py-1 px-2 rounded text-sm transition duration-300 ease-in-out flex items-center`}
           >
-            {showChatCard ? '关闭对话' : 'AI对话'}
-            {hasHistory && !showChatCard && (
+            {showChatPart ? '关闭对话' : 'AI对话'}
+            {hasHistory && !showChatPart && (
               <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-2 h-2"></span>
             )}
           </button>
         </div>
       )}
       
-      {(showChatCard || isVertical) && (
+      {(showChatPart || isVertical) && (
         <div className={isVertical ? "mt-4" : "mt-4"}>
-          <ChatCard 
+          <ChatPart 
             content={message.parsedContent}
             contentType={message.type}
             presetTags={getPresetTags()}

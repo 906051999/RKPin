@@ -22,7 +22,7 @@ const presetTagConfig = {
   ],
 };
 
-const ChatCard = ({ content, contentType, presetTags, messages, onUpdateMessages, onClearChat }) => {
+const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages, onClearChat }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -262,4 +262,4 @@ const ChatCard = ({ content, contentType, presetTags, messages, onUpdateMessages
   );
 };
 
-export default ChatCard;
+export default ChatPart;
