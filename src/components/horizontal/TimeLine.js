@@ -5,16 +5,15 @@ const TimeLine = ({ groupedMessages, sortedDates, activeId, onTimelineClick, isC
 
   const getPreviewContent = (message) => {
     switch (message.type) {
+      case 'Link':
+      case 'Weibo':
+      case 'Weixin':
+      case 'Weixin Official Accounts Platform':
       case 'Bilibili':
       case 'GitHub':
         return message.parsedContent?.title || '无标题';
       case 'Telegram':
         return message.parsedContent?.message?.substring(0, 30) + '...' || '无内容';
-      case 'Weixin':
-      case 'Weixin Official Accounts Platform':
-        return message.parsedContent?.title || '无标题';
-      case 'Weibo':
-        return message.parsedContent?.title || '无标题';
       default:
         return message.title || '无标题';
     }
