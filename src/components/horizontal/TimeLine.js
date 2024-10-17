@@ -69,10 +69,10 @@ const TimeLine = ({ groupedMessages, sortedDates, activeId, onTimelineClick, isC
               </div>
               <ul className="space-y-1 ml-4 border-l border-gray-200 pl-2">
                 {groupedMessages[date].map((message) => (
-                  <li key={message.messageId}>
+                  <li key={message.uniqueId}>
                     <button 
-                      onClick={() => onTimelineClick(message.messageId)}
-                      className={`text-xs ${activeId === message.messageId ? 'text-blue-600 font-semibold' : 'text-gray-600'} hover:text-blue-500 truncate block py-1 text-left w-full transition duration-300`}
+                      onClick={() => onTimelineClick(message.uniqueId)}
+                      className={`text-xs ${activeId === message.uniqueId ? 'text-blue-600 font-semibold' : 'text-gray-600'} hover:text-blue-500 truncate block py-1 text-left w-full transition duration-300`}
                     >
                       <span dangerouslySetInnerHTML={renderHTML(getPreviewContent(message))} />
                     </button>

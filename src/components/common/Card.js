@@ -24,13 +24,13 @@ const Card = ({ message, isVertical }) => {
 
   useEffect(() => {
     // 从 localStorage 加载对话内容
-    const storedMessages = localStorage.getItem(`chat_${message.messageId}`);
+    const storedMessages = localStorage.getItem(`chat_${message.uniqueId}`);
     if (storedMessages) {
       const parsedMessages = JSON.parse(storedMessages);
       setChatMessages(parsedMessages);
       setHasHistory(parsedMessages.length > 0);
     }
-  }, [message.messageId]);
+  }, [message.uniqueId]);
 
   const handleAIChat = () => {
     setShowChatPart(!showChatPart);
@@ -38,14 +38,14 @@ const Card = ({ message, isVertical }) => {
 
   const handleClearChat = () => {
     // 清除 localStorage 中的对话内容
-    localStorage.removeItem(`chat_${message.messageId}`);
+    localStorage.removeItem(`chat_${message.uniqueId}`);
     setChatMessages([]);
     setHasHistory(false);
   };
 
   const handleUpdateChat = (newMessages) => {
     // 更新 localStorage 中的对话内容
-    localStorage.setItem(`chat_${message.messageId}`, JSON.stringify(newMessages));
+    localStorage.setItem(`chat_${message.uniqueId}`, JSON.stringify(newMessages));
     setChatMessages(newMessages);
     setHasHistory(newMessages.length > 0);
   };

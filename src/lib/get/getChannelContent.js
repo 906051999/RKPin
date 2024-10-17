@@ -44,7 +44,7 @@ async function fetchHtml(url, updateStatus) {
   });
 }
 
-async function parseMessage($, element, updateStatus) {
+async function parseMessage($, element, updateStatus, channelName) {
   try {
     const $message = $(element);
     updateStatus(`开始解析消息: ${$message.attr('class')}`);
@@ -57,6 +57,7 @@ async function parseMessage($, element, updateStatus) {
     }
     
     const messageId = dataPost.split('/')[1];
+    const uniqueId = `${channelName}.${messageId}`;
     let type = 'Telegram';
     const linkPreviewSiteName = $message.find('.link_preview_site_name').text().trim();
     
@@ -75,9 +76,10 @@ async function parseMessage($, element, updateStatus) {
     const parser = parseFactory(type);
     const parsedContent = await parser({ rawHtml: $.html(element) });
 
-    updateStatus(`成功解析消息: ID ${messageId}, 类型 ${type}`);
+    updateStatus(`成功解析消息: ID ${uniqueId}, 类型 ${type}`);
 
     return {
+      uniqueId,
       messageId,
       type,
       replyId,
@@ -106,8 +108,10 @@ export async function getChannelContent(updateStatus = console.log, before = '',
       updateStatus(`警告: 没有找到任何消息。页面HTML: ${$.html()}`);
     }
 
+    const channelName = new URL(channelUrl).pathname.split('/')[2];
+    
     const parsedMessages = await Promise.all(
-      messages.map((_, element) => parseMessage($, element, updateStatus)).get()
+      messages.map((_, element) => parseMessage($, element, updateStatus, channelName)).get()
     );
 
     const validMessages = parsedMessages.filter(msg => msg !== null);

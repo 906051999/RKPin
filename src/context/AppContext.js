@@ -14,7 +14,8 @@ export const AppProvider = ({ children }) => {
     if (!channelUrl) return;
     setIsLoading(true);
     try {
-      let storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelUrl}`) || '[]');
+      const channelName = new URL(channelUrl).pathname.split('/')[2];
+      let storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelName}`) || '[]');
       
       if (refresh) {
         storedContent = [];
@@ -30,7 +31,7 @@ export const AppProvider = ({ children }) => {
       const { content: newContent, isComplete: complete } = await response.json();
       
       const uniqueContent = [...storedContent, ...newContent].reduce((acc, current) => {
-        const x = acc.find(item => item.messageId === current.messageId);
+        const x = acc.find(item => item.uniqueId === current.uniqueId);
         if (!x) {
           return acc.concat([current]);
         } else {
@@ -39,7 +40,7 @@ export const AppProvider = ({ children }) => {
       }, []);
 
       const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-      localStorage.setItem(`parsed_content_${channelUrl}`, JSON.stringify(sortedContent));
+      localStorage.setItem(`parsed_content_${channelName}`, JSON.stringify(sortedContent));
       setContent(sortedContent);
       setTotalMessages(sortedContent.length);
       setIsComplete(complete);
@@ -66,7 +67,8 @@ export const AppProvider = ({ children }) => {
 
   const handleClearLocalStorage = useCallback(() => {
     if (channelUrl) {
-      localStorage.removeItem(`parsed_content_${channelUrl}`);
+      const channelName = new URL(channelUrl).pathname.split('/')[2];
+      localStorage.removeItem(`parsed_content_${channelName}`);
       setContent([]);
       setTotalMessages(0);
       setIsComplete(false);
@@ -75,7 +77,8 @@ export const AppProvider = ({ children }) => {
   }, [channelUrl]);
 
   useEffect(() => {
-    const storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelUrl}`) || '[]');
+    const channelName = new URL(channelUrl).pathname.split('/')[2];
+    const storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelName}`) || '[]');
     if (storedContent.length > 0) {
       setContent(storedContent);
       setTotalMessages(storedContent.length);

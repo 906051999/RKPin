@@ -4,8 +4,8 @@ import Card from '@/components/common/Card';
 const MessageList = React.forwardRef(({ groupedMessages, sortedDates, onCardFocus }, ref) => {
   const messageRefs = useRef({});
 
-  const handleCardInteraction = (messageId) => {
-    onCardFocus(messageId);
+  const handleCardInteraction = (uniqueId) => {
+    onCardFocus(uniqueId);
   };
 
   return (
@@ -18,13 +18,13 @@ const MessageList = React.forwardRef(({ groupedMessages, sortedDates, onCardFocu
           <div className="space-y-4">
             {groupedMessages[date].map((message) => (
               <div 
-                id={message.messageId} 
-                key={message.messageId} 
+                id={message.uniqueId} 
+                key={message.uniqueId} 
                 className="message-card transition duration-300 hover:shadow-md"
-                ref={el => messageRefs.current[message.messageId] = el}
-                onMouseEnter={() => handleCardInteraction(message.messageId)}
-                onClick={() => handleCardInteraction(message.messageId)}
-                onTouchStart={() => handleCardInteraction(message.messageId)}
+                ref={el => messageRefs.current[message.uniqueId] = el}
+                onMouseEnter={() => handleCardInteraction(message.uniqueId)}
+                onClick={() => handleCardInteraction(message.uniqueId)}
+                onTouchStart={() => handleCardInteraction(message.uniqueId)}
               >
                 <Card message={message} />
               </div>

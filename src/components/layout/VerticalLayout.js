@@ -12,7 +12,7 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
   const [groupedMessages, setGroupedMessages] = useState({});
   const [sortedDates, setSortedDates] = useState([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [activeUniqueId, setActiveUniqueId] = useState(null);
   const flickityRefs = useRef({});
 
   useEffect(() => {
@@ -26,6 +26,11 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
 
     const sorted = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
     setSortedDates(sorted);
+
+    // Set the initial activeUniqueId
+    if (sorted.length > 0 && grouped[sorted[0]].length > 0) {
+      setActiveUniqueId(grouped[sorted[0]][0].uniqueId);
+    }
   }, [content]);
 
   const flickityOptions = {
@@ -39,30 +44,34 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
 
   const handleTabSelect = (index) => {
     setTabIndex(index);
-    setActiveSlideIndex(0);
+    if (groupedMessages[sortedDates[index]] && groupedMessages[sortedDates[index]].length > 0) {
+      setActiveUniqueId(groupedMessages[sortedDates[index]][0].uniqueId);
+    }
     if (flickityRefs.current[sortedDates[index]]) {
       flickityRefs.current[sortedDates[index]].select(0, false, true);
     }
   };
 
   const handleSlideChange = useCallback(
-    debounce((index) => {
-      setActiveSlideIndex(index);
+    debounce((index, date) => {
+      if (groupedMessages[date] && groupedMessages[date][index]) {
+        setActiveUniqueId(groupedMessages[date][index].uniqueId);
+      }
     }, 150),
-    []
+    [groupedMessages]
   );
 
-  const handleDotClick = (index) => {
-    setActiveSlideIndex(index);
-    if (flickityRefs.current[sortedDates[tabIndex]]) {
-      flickityRefs.current[sortedDates[tabIndex]].select(index, false, true);
+  const handleDotClick = (uniqueId, date) => {
+    const index = groupedMessages[date].findIndex(msg => msg.uniqueId === uniqueId);
+    if (index !== -1 && flickityRefs.current[date]) {
+      flickityRefs.current[date].select(index, false, true);
     }
   };
 
   const flickityRef = useCallback((date) => (c) => {
     if (c) {
       flickityRefs.current[date] = c;
-      c.on('change', handleSlideChange);
+      c.on('change', (index) => handleSlideChange(index, date));
     }
   }, [handleSlideChange]);
 
@@ -79,8 +88,8 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
           {sortedDates[tabIndex] && (
             <DotIndicator
               messages={groupedMessages[sortedDates[tabIndex]]}
-              activeSlideIndex={activeSlideIndex}
-              handleDotClick={handleDotClick}
+              activeUniqueId={activeUniqueId}
+              handleDotClick={(uniqueId) => handleDotClick(uniqueId, sortedDates[tabIndex])}
             />
           )}
         </Tabs>
@@ -98,7 +107,7 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
                 flickityRef={flickityRef(date)}
               >
                 {groupedMessages[date].map((message) => (
-                  <div key={message.messageId} className="w-full px-4 py-2">
+                  <div key={message.uniqueId} className="w-full px-4 py-2">
                     <Card message={message} isVertical={true} />
                   </div>
                 ))}
