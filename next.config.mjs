@@ -25,6 +25,14 @@ const nextConfig = {
       // 添加其他可能的 CDN 域名
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/:channelName',
+        destination: '/',
+      },
+    ];
+  },
 }
 
 export default nextConfig;

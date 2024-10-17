@@ -1,14 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import TimeLine from '@/components/horizontal/TimeLine';
 import MessageList from '@/components/horizontal/MessageList';
 import ChatBar from '@/components/horizontal/ChatBar';
 
-export default function Horizontal({ content, isLoading, isComplete, totalMessages, fetchContent, fetchTotalMessages, handleRefresh, showChatBar, toggleChatBar }) {
-  console.log("HorizontalLayout content:", content);
-  console.log("HorizontalLayout isLoading:", isLoading);
-
+export default function Horizontal({ 
+  content, 
+  isLoading, 
+  isComplete, 
+  totalMessages, 
+  fetchContent, 
+  fetchTotalMessages, 
+  handleRefresh, 
+  showChatBar, 
+  toggleChatBar,
+  contentRef
+}) {
   const [activeId, setActiveId] = useState(null);
-  const contentRef = useRef(null);
 
   const groupedMessages = content.reduce((groups, message) => {
     const date = new Date(message.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -37,6 +44,10 @@ export default function Horizontal({ content, isLoading, isComplete, totalMessag
         {isLoading && content.length === 0 ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : content.length === 0 ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg text-gray-500">No content available</p>
           </div>
         ) : (
           <div className="flex bg-gray-100 h-[calc(100vh-6rem)]">

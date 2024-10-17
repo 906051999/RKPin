@@ -20,7 +20,8 @@ export async function GET(request, { params }) {
 
   if (slug[0] === 'refresh' || slug[0] === 'content') {
     const before = searchParams.get('before') || '';
-    const { content: newContent, isComplete } = await getChannelContent(console.log, before);
+    const channelUrl = searchParams.get('channelUrl') || process.env.TELEGRAM_CHANNEL_URL;
+    const { content: newContent, isComplete } = await getChannelContent(console.log, before, channelUrl);
     return Response.json({ content: newContent, isComplete });
   } else if (slug[0] === 'image') {
     const imageUrl = searchParams.get('url');

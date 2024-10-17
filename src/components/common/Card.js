@@ -14,6 +14,7 @@ const presetTagConfig = {
   'Weixin Official Accounts Platform': ['内容总结', '观点分析'],
   Weibo: ['内容摘要', '话题评析'],
   Link: ['网站总结', '类型分析'],
+  UnsupportedMedia: ['内容描述', '媒体类型'],
 };
 
 const Card = ({ message, isVertical }) => {
@@ -54,7 +55,7 @@ const Card = ({ message, isVertical }) => {
       return <p className="text-gray-700">{message.content || '无内容'}</p>;
     }
 
-    console.log('Rendering content for type:', message.type, 'Content:', message.parsedContent); // 添加日志
+    console.log('Rendering content for type:', message.type, 'Content:', message.parsedContent);
 
     switch (message.type.toLowerCase()) {
       case 'bilibili':
@@ -69,6 +70,20 @@ const Card = ({ message, isVertical }) => {
         return <WeixinContent content={message.parsedContent} />;
       case 'weibo':
         return <WeiboContent content={message.parsedContent} />;
+      case 'unsupportedmedia':
+        return (
+          <div className="bg-gray-100 p-4 rounded-md">
+            <p className="text-gray-700 mb-2">{message.parsedContent.label}</p>
+            <a
+              href={message.parsedContent.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              在 Telegram 中查看
+            </a>
+          </div>
+        );
       default:
         return <p className="text-gray-700">{JSON.stringify(message.parsedContent)}</p>;
     }
@@ -78,10 +93,17 @@ const Card = ({ message, isVertical }) => {
     return presetTagConfig[message.type] || [];
   };
 
+  const renderAuthor = () => {
+    return { __html: message.author };
+  };
+
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
-        <span className="font-semibold text-gray-900">{message.author}</span>
+        <span 
+          className="font-semibold text-gray-900"
+          dangerouslySetInnerHTML={renderAuthor()}
+        />
         <span className="text-sm text-gray-500">
           {new Date(message.date).toLocaleString('zh-CN')}
         </span>

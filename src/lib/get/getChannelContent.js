@@ -69,7 +69,7 @@ async function parseMessage($, element, updateStatus) {
     }
 
     const replyId = $message.find('.tgme_widget_message_reply').attr('href')?.split('/').pop() || '';
-    const author = $message.find('.tgme_widget_message_from_author').text().trim();
+    const author = $message.find('.tgme_widget_message_owner_name').prop('outerHTML') || '';
     const date = $message.find('.tgme_widget_message_date time').attr('datetime');
 
     const parser = parseFactory(type);
@@ -92,9 +92,9 @@ async function parseMessage($, element, updateStatus) {
   }
 }
 
-export async function getChannelContent(updateStatus = console.log, before = '') {
+export async function getChannelContent(updateStatus = console.log, before = '', channelUrl = process.env.TELEGRAM_CHANNEL_URL) {
   try {
-    const url = before ? `${CHANNEL_URL}?before=${before}` : CHANNEL_URL;
+    const url = before ? `${channelUrl}?before=${before}` : channelUrl;
     const html = await fetchHtml(url, updateStatus);
     updateStatus('数据接收完成，开始解析...');
     const $ = cheerio.load(html);

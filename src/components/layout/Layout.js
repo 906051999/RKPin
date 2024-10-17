@@ -12,7 +12,8 @@ export default function Layout({
   fetchTotalMessages,
   handleRefresh,
   showChatBar,
-  toggleChatBar
+  toggleChatBar,
+  contentRef
 }) {
   return isVertical ? (
     <Vertical
@@ -32,6 +33,7 @@ export default function Layout({
       handleRefresh={handleRefresh}
       showChatBar={showChatBar}
       toggleChatBar={toggleChatBar}
+      contentRef={contentRef}
     />
   );
 }

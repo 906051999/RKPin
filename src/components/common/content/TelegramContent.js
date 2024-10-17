@@ -3,6 +3,18 @@ import React from 'react';
 const TelegramContent = ({ content }) => {
   const proxyImageUrl = (url) => `/api/image?url=${encodeURIComponent(url)}`;
 
+  if (!content || (!content.forwardFrom && !content.message && !content.previewImage)) {
+    return (
+      <div className="telegram-content">
+        <p className="text-sm text-gray-500">
+          Please open Telegram to view this post
+          <br />
+          请打开 Telegram 查看此帖子
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="telegram-content">
       {content.forwardFrom && (

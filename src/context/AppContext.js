@@ -4,20 +4,17 @@ export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [content, setContent] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
   const [lastMessageId, setLastMessageId] = useState(null);
-
-  const fetchTotalMessages = useCallback(() => {
-    const storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
-    setTotalMessages(storedContent.length);
-  }, []);
+  const [channelUrl, setChannelUrl] = useState(process.env.TELEGRAM_CHANNEL_URL);
 
   const fetchContent = useCallback(async (refresh = false) => {
+    if (!channelUrl) return;
     setIsLoading(true);
     try {
-      let storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
+      let storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelUrl}`) || '[]');
       
       if (refresh) {
         storedContent = [];
@@ -25,14 +22,13 @@ export const AppProvider = ({ children }) => {
       }
 
       const url = refresh || storedContent.length === 0
-        ? '/api/refresh'
-        : `/api/content?before=${lastMessageId}`;
+        ? `/api/refresh?channelUrl=${encodeURIComponent(channelUrl)}`
+        : `/api/content?before=${lastMessageId}&channelUrl=${encodeURIComponent(channelUrl)}`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const { content: newContent, isComplete: complete } = await response.json();
       
-      // 去重处理
       const uniqueContent = [...storedContent, ...newContent].reduce((acc, current) => {
         const x = acc.find(item => item.messageId === current.messageId);
         if (!x) {
@@ -43,7 +39,7 @@ export const AppProvider = ({ children }) => {
       }, []);
 
       const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-      localStorage.setItem('parsed_content', JSON.stringify(sortedContent));
+      localStorage.setItem(`parsed_content_${channelUrl}`, JSON.stringify(sortedContent));
       setContent(sortedContent);
       setTotalMessages(sortedContent.length);
       setIsComplete(complete);
@@ -56,7 +52,7 @@ export const AppProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [lastMessageId]);
+  }, [lastMessageId, channelUrl]);
 
   const handleRefresh = useCallback(() => {
     fetchContent(true);
@@ -69,22 +65,25 @@ export const AppProvider = ({ children }) => {
   }, [isComplete, isLoading, fetchContent]);
 
   const handleClearLocalStorage = useCallback(() => {
-    localStorage.removeItem('parsed_content');
-    setContent([]);
-    setTotalMessages(0);
-    setIsComplete(false);
-  }, []);
+    if (channelUrl) {
+      localStorage.removeItem(`parsed_content_${channelUrl}`);
+      setContent([]);
+      setTotalMessages(0);
+      setIsComplete(false);
+      setLastMessageId(null);
+    }
+  }, [channelUrl]);
 
   useEffect(() => {
-    const storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
+    const storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelUrl}`) || '[]');
     if (storedContent.length > 0) {
       setContent(storedContent);
       setTotalMessages(storedContent.length);
       setLastMessageId(storedContent[storedContent.length - 1].messageId);
     } else {
-      fetchContent(true); // 只在没有存储的内容时初始加载
+      fetchContent(true);
     }
-  }, [fetchContent]);
+  }, [channelUrl, fetchContent]);
 
   const value = {
     content,
@@ -92,10 +91,11 @@ export const AppProvider = ({ children }) => {
     isComplete,
     totalMessages,
     fetchContent,
-    fetchTotalMessages,
     handleRefresh,
     handleLoadMore,
-    handleClearLocalStorage
+    handleClearLocalStorage,
+    channelUrl,
+    setChannelUrl,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
