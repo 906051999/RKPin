@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '@/context/AppContext';
-import { getChannelData } from '@/utils/storageManager';
+import { getChannelStack, setChannelStack, getChannelData, isClientSide } from '@/utils/storageManager';
 import DOMPurify from 'dompurify';
 
 const ChannelList = ({ onClose }) => {
@@ -10,13 +10,15 @@ const ChannelList = ({ onClose }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const storedChannels = JSON.parse(localStorage.getItem('channelStack') || '[]');
-    const channelsWithInfo = storedChannels.map(channel => {
-      const data = getChannelData(channel);
-      const author = data && data.length > 0 ? data[0].author : '';
-      return { url: channel, author };
-    });
-    setChannels(channelsWithInfo);
+    if (isClientSide()) {
+      const storedChannels = getChannelStack();
+      const channelsWithInfo = storedChannels.map(channel => {
+        const data = getChannelData(channel);
+        const author = data && data.length > 0 ? data[0].author : '';
+        return { url: channel, author };
+      });
+      setChannels(channelsWithInfo);
+    }
   }, []);
 
   const addChannel = () => {
@@ -36,7 +38,9 @@ const ChannelList = ({ onClose }) => {
     if (!channels.some(channel => channel.url === formattedChannel)) {
       const updatedChannels = [{ url: formattedChannel, author: '' }, ...channels].slice(0, 5);
       setChannels(updatedChannels);
-      localStorage.setItem('channelStack', JSON.stringify(updatedChannels.map(channel => channel.url)));
+      if (isClientSide()) {
+        setChannelStack(updatedChannels.map(channel => channel.url));
+      }
       setNewChannel('');
       setError('');
     }
@@ -50,7 +54,9 @@ const ChannelList = ({ onClose }) => {
   const removeChannel = (channelUrl) => {
     const updatedChannels = channels.filter(channel => channel.url !== channelUrl);
     setChannels(updatedChannels);
-    localStorage.setItem('channelStack', JSON.stringify(updatedChannels.map(channel => channel.url)));
+    if (isClientSide()) {
+      setChannelStack(updatedChannels.map(channel => channel.url));
+    }
   };
 
   const renderChannelInfo = (channel) => {

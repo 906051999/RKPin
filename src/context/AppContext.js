@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import ProcessManager from '@/utils/ProcessManager';
-import { saveChannelData, getChannelData, clearChannelData } from '@/utils/storageManager';
+import { saveChannelData, getChannelData, clearChannelData, getLastSelectedChannel, setLastSelectedChannel, isClientSide, initializeStorage } from '@/utils/storageManager';
 
 export const AppContext = createContext();
 
@@ -10,11 +10,15 @@ export const AppProvider = ({ children }) => {
   const [isComplete, setIsComplete] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
   const [lastMessageId, setLastMessageId] = useState(null);
-  const [channelUrl, setChannelUrl] = useState(() => {
-    // 从 localStorage 中获取上次选中的频道，如果没有则使用默认频道
-    return localStorage.getItem('lastSelectedChannel') || process.env.TELEGRAM_CHANNEL_URL;
-  });
+  const [channelUrl, setChannelUrl] = useState(process.env.TELEGRAM_CHANNEL_URL);
   const [shouldAutoLoad, setShouldAutoLoad] = useState(true);
+
+  useEffect(() => {
+    if (isClientSide()) {
+      initializeStorage();
+      setChannelUrl(getLastSelectedChannel());
+    }
+  }, []);
 
   const fetchContent = useCallback(async (refresh = false) => {
     if (!channelUrl) return;
@@ -96,20 +100,22 @@ export const AppProvider = ({ children }) => {
   const selectChannel = useCallback((newChannelUrl) => {
     ProcessManager.cancelAllProcesses();
     setChannelUrl(newChannelUrl);
-    localStorage.setItem('lastSelectedChannel', newChannelUrl); // 保存选中的频道到 localStorage
-    const storedContent = getChannelData(newChannelUrl);
-    if (storedContent) {
-      setContent(storedContent);
-      setTotalMessages(storedContent.length);
-      setIsComplete(false);
-      setLastMessageId(storedContent[storedContent.length - 1]?.messageId || null);
-      setShouldAutoLoad(false);
-    } else {
-      setContent([]);
-      setTotalMessages(0);
-      setIsComplete(false);
-      setLastMessageId(null);
-      setShouldAutoLoad(true);
+    if (isClientSide()) {
+      setLastSelectedChannel(newChannelUrl);
+      const storedContent = getChannelData(newChannelUrl);
+      if (storedContent) {
+        setContent(storedContent);
+        setTotalMessages(storedContent.length);
+        setIsComplete(false);
+        setLastMessageId(storedContent[storedContent.length - 1]?.messageId || null);
+        setShouldAutoLoad(false);
+      } else {
+        setContent([]);
+        setTotalMessages(0);
+        setIsComplete(false);
+        setLastMessageId(null);
+        setShouldAutoLoad(true);
+      }
     }
   }, []);
 
