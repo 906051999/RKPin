@@ -1,4 +1,5 @@
 import React from 'react';
+import MoreMenu from './MoreMenu';
 
 export default function Header({
   totalMessages,
@@ -46,12 +47,7 @@ export default function Header({
               {isLoading ? '加载中...' : '加载更多'}
             </button>
           )}
-          <button
-            onClick={handleClearLocalStorage}
-            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
-          >
-            清除缓存
-          </button>
+          <MoreMenu handleClearLocalStorage={handleClearLocalStorage} />
         </div>
       </div>
     </header>

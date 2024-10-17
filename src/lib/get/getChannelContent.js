@@ -1,13 +1,10 @@
 import https from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import * as cheerio from 'cheerio';
-import fs from 'fs/promises';
-import path from 'path';
 import { parseFactory } from '../parser/parserFactory';
 
 const CHANNEL_URL = process.env.TELEGRAM_CHANNEL_URL;
 const PROXY_URL = process.env.HTTPS_PROXY;
-const JSON_FILE_PATH = path.join(process.cwd(), 'public', 'parsed_content.json');
 
 async function fetchHtml(url, updateStatus) {
   return new Promise((resolve, reject) => {

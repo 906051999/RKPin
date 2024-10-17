@@ -4,14 +4,11 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { AppContext, AppProvider } from '@/context/AppContext';
 import Layout from '@/components/layout/Layout';
 import Header from '@/components/common/Header';
-import { usePathname } from 'next/navigation';
 
 const Home = () => {
   const [isVertical, setIsVertical] = useState(false);
   const [layoutDetermined, setLayoutDetermined] = useState(false);
   const [showChatBar, setShowChatBar] = useState(false);
-  const pathname = usePathname();
-  const channelName = pathname.slice(1); // 移除开头的 '/'
   const contentRef = useRef(null);
 
   const {
@@ -22,8 +19,6 @@ const Home = () => {
     handleRefresh,
     handleLoadMore,
     handleClearLocalStorage,
-    setChannelUrl,
-    fetchContent
   } = useContext(AppContext);
 
   useEffect(() => {
@@ -36,21 +31,6 @@ const Home = () => {
     window.addEventListener('resize', checkOrientation);
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
-
-  useEffect(() => {
-    if (channelName) {
-      setChannelUrl(`https://t.me/s/${channelName}`);
-    } else {
-      // 如果没有后缀，使用默认频道 URL
-      setChannelUrl(process.env.TELEGRAM_CHANNEL_URL);
-    }
-  }, [channelName, setChannelUrl]);
-
-  useEffect(() => {
-    if (content.length === 0) {
-      fetchContent(true);
-    }
-  }, [content.length, fetchContent]);
 
   useEffect(() => {
     if (contentRef.current && content.length > 0) {

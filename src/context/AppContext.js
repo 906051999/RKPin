@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
+import ProcessManager from '@/utils/ProcessManager';
+import { saveChannelData, getChannelData, clearChannelData } from '@/utils/storageManager';
 
 export const AppContext = createContext();
 
@@ -8,14 +10,26 @@ export const AppProvider = ({ children }) => {
   const [isComplete, setIsComplete] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
   const [lastMessageId, setLastMessageId] = useState(null);
-  const [channelUrl, setChannelUrl] = useState(process.env.TELEGRAM_CHANNEL_URL);
+  const [channelUrl, setChannelUrl] = useState(() => {
+    // 从 localStorage 中获取上次选中的频道，如果没有则使用默认频道
+    return localStorage.getItem('lastSelectedChannel') || process.env.TELEGRAM_CHANNEL_URL;
+  });
+  const [shouldAutoLoad, setShouldAutoLoad] = useState(true);
 
   const fetchContent = useCallback(async (refresh = false) => {
     if (!channelUrl) return;
     setIsLoading(true);
+
+    const fetchProcess = {
+      cancel: () => {
+        setIsLoading(false);
+      }
+    };
+
+    ProcessManager.startProcess(channelUrl, fetchProcess);
+
     try {
-      const channelName = new URL(channelUrl).pathname.split('/')[2];
-      let storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelName}`) || '[]');
+      let storedContent = getChannelData(channelUrl) || [];
       
       if (refresh) {
         storedContent = [];
@@ -40,7 +54,7 @@ export const AppProvider = ({ children }) => {
       }, []);
 
       const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-      localStorage.setItem(`parsed_content_${channelName}`, JSON.stringify(sortedContent));
+      saveChannelData(channelUrl, sortedContent);
       setContent(sortedContent);
       setTotalMessages(sortedContent.length);
       setIsComplete(complete);
@@ -48,10 +62,13 @@ export const AppProvider = ({ children }) => {
       if (sortedContent.length > 0) {
         setLastMessageId(sortedContent[sortedContent.length - 1].messageId);
       }
+
+      setShouldAutoLoad(false);
     } catch (error) {
       console.error('Error fetching content:', error);
     } finally {
       setIsLoading(false);
+      ProcessManager.cancelProcess(channelUrl);
     }
   }, [lastMessageId, channelUrl]);
 
@@ -67,26 +84,52 @@ export const AppProvider = ({ children }) => {
 
   const handleClearLocalStorage = useCallback(() => {
     if (channelUrl) {
-      const channelName = new URL(channelUrl).pathname.split('/')[2];
-      localStorage.removeItem(`parsed_content_${channelName}`);
+      clearChannelData(channelUrl);
       setContent([]);
       setTotalMessages(0);
       setIsComplete(false);
       setLastMessageId(null);
+      setShouldAutoLoad(true);
     }
   }, [channelUrl]);
 
-  useEffect(() => {
-    const channelName = new URL(channelUrl).pathname.split('/')[2];
-    const storedContent = JSON.parse(localStorage.getItem(`parsed_content_${channelName}`) || '[]');
-    if (storedContent.length > 0) {
+  const selectChannel = useCallback((newChannelUrl) => {
+    ProcessManager.cancelAllProcesses();
+    setChannelUrl(newChannelUrl);
+    localStorage.setItem('lastSelectedChannel', newChannelUrl); // 保存选中的频道到 localStorage
+    const storedContent = getChannelData(newChannelUrl);
+    if (storedContent) {
       setContent(storedContent);
       setTotalMessages(storedContent.length);
-      setLastMessageId(storedContent[storedContent.length - 1].messageId);
+      setIsComplete(false);
+      setLastMessageId(storedContent[storedContent.length - 1]?.messageId || null);
+      setShouldAutoLoad(false);
     } else {
-      fetchContent(true);
+      setContent([]);
+      setTotalMessages(0);
+      setIsComplete(false);
+      setLastMessageId(null);
+      setShouldAutoLoad(true);
     }
-  }, [channelUrl, fetchContent]);
+  }, []);
+
+  useEffect(() => {
+    // 页面刷新时加载上次选中的频道
+    selectChannel(channelUrl);
+  }, [selectChannel, channelUrl]);
+
+  useEffect(() => {
+    if (shouldAutoLoad) {
+      fetchContent(true).catch(() => {
+        // 如果加载失败，切换回默认频道
+        const defaultChannel = process.env.TELEGRAM_CHANNEL_URL;
+        if (channelUrl !== defaultChannel) {
+          alert('加载频道数据失败，已切换回默认频道。');
+          selectChannel(defaultChannel);
+        }
+      });
+    }
+  }, [fetchContent, shouldAutoLoad, channelUrl, selectChannel]);
 
   const value = {
     content,
@@ -99,6 +142,7 @@ export const AppProvider = ({ children }) => {
     handleClearLocalStorage,
     channelUrl,
     setChannelUrl,
+    selectChannel,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
