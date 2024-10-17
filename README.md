@@ -1,129 +1,44 @@
-# RKPin 系统架构
+# RKPin
 
-```mermaid
-flowchart TB
-    %% 设置全局样式
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    
-    subgraph Users["👥 用户"]
-        direction TB
-        User([👤 普通用户])
-        WebUser([💻 Web用户])
-        Admin([👑 管理员])
-    end
+优雅高效地分享见闻 Share your insights elegantly and efficiently
 
-    subgraph RKPin["🚀 RKPin 系统"]
-        direction TB
-        Bot[🤖 rkpin-bot]
-        Web[🌐 rkpin-web]
-        DB[(💾 数据库)]
-        LLMAPI[🧠 LLM API]
-    end
+- 使用 javascript 开发
+- 使用 next.js 14 框架
 
-    subgraph External["🌍 外部系统"]
-        direction TB
-        Channel[📢 Telegram频道]
-        AdminGroup[👥 管理群组]
-        subgraph ExternalSources["🔗 外部内容源"]
-            GitHub[GitHub]
-            Weibo[微博]
-            WeChat[微信公众号]
-            Bilibili[Bilibili]
-            TGForward[Telegram转发]
-        end
-    end
+## 项目规划
+1. 用户在telegram上 向 rkpin-bot 发送分享链接，如 GitHub、微博、微信公众号、bilibili、telegram转发内容等
+2. rkpin-bot 将链接转发到指定群组，并提供选项给群组管理员来选择是否将内容展示在频道
+3. 如果管理员选择展示，则 rkpin-bot 开始通过浏览器或API等方式获取链接更详细的内容
+4. 获取到内容后，通过 rkpin-bot 发送给频道，并将内容按照标准格式保存到数据库，与频道内容的messageId关联
+5. 如果用户在频道内对内容进行留言，则机器人会在对应的群组内接收到留言，并将留言保存到数据库，与频道内容的messageId关联
+6. 用户访问 rkpin-web ，rkpin-web 会通过HTML解析频道内容，并通过messageId在数据库中获取到更多的对应内容，处理后展示在页面上
+7. 用户在 rkpin-web 内可以选择AI模型，服务器会调用llm-api来实现针对内容的对话
+8. rkpin-bot 可以调用API实现功能拓展，管理员通过在telegram的群组中与rkpin-bot交互，实现总结对话、AI问答、视频生成等功能
 
-    User -->|分享链接| Bot
-    User -->|留言| Channel
-    WebUser -->|访问| Web
-    Admin -->|审核/使用AI功能| AdminGroup
+## 项目优化
+- 组件拆分和重用
+- 使用自定义 hooks 抽离复杂逻辑
+- 统一状态管理，使用 Context API 管理全局状态
+- 实现模块化的 CSS，使用 CSS Modules 或 styled-components 来实现更模块化的样式管理
+- 优化性能
+  - 实现虚拟滚动以处理大量消息
+  - 使用 React.memo 来优化不必要的重渲染
+  - 实现懒加载和代码分割
 
-    Bot -->|转发链接| AdminGroup
-    AdminGroup -->|审核决定| Bot
-    Bot -->|获取内容| ExternalSources
-    Bot <-->|内容/留言| Channel
-    Bot <-->|存储/获取数据| DB
-    
-    Channel -->|内容| Web
-    Web <-->|获取数据| DB
-    Web <-->|AI交互| LLMAPI
-    
-    Bot <-->|AI功能| LLMAPI
+## 项目说明
 
-    %% 定义样式类
-    classDef userColor fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b,font-weight:bold;
-    classDef systemColor fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#f57f17,font-weight:bold;
-    classDef externalColor fill:#c8e6c9,stroke:#4caf50,stroke-width:2px,color:#1b5e20,font-weight:bold;
-    classDef sourceColor fill:#ffcdd2,stroke:#e57373,stroke-width:2px,color:#b71c1c,font-weight:bold;
-    
-    %% 应用样式
-    class User,WebUser,Admin userColor;
-    class Bot,Web,DB,LLMAPI systemColor;
-    class Channel,AdminGroup externalColor;
-    class GitHub,Weibo,WeChat,Bilibili,TGForward sourceColor;
+### 目录结构（修改中）
+- src/app/page.js：页面
+- src/components/：组件
+  - Card.js：内容卡片
+  - /content/：不同类型的内容组件
+  - TimeLine.js：时间线组件
+- src/lib/get/：
+  - getChannelContent.js：获取频道内容
+  - getGithubContent.js：获取github项目的readme内容
+- src/lib/parser/：频道内容解析器
 
-    %% 设置子图样式
-    style Users fill:#e1f5fe,stroke:#03a9f4,stroke-width:4px;
-    style RKPin fill:#fff9c4,stroke:#fbc02d,stroke-width:4px;
-    style External fill:#c8e6c9,stroke:#4caf50,stroke-width:4px;
-    style ExternalSources fill:#ffcdd2,stroke:#e57373,stroke-width:4px;
-````
-
-## 核心组件
-
-1. rkpin-bot：Telegram 机器人
-2. rkpin-web：Web 前端界面
-3. 数据库：存储内容和元数据
-4. llm-api：AI 模型接口
-
-## 工作流程
-
-### 内容采集与分发
-
-1. 用户向 rkpin-bot 发送分享链接（支持 GitHub、微博、微信公众号、bilibili、Telegram 等）
-2. rkpin-bot 将链接转发至指定管理群组
-3. 群组管理员决定是否在频道展示内容
-4. 若同意展示，rkpin-bot 获取详细内容（通过浏览器或 API）
-5. rkpin-bot 将内容发送至频道并存入数据库，关联 messageId
-
-### 用户互动
-
-1. 用户在频道对内容留言
-2. rkpin-bot 在管理群组接收留言
-3. 留言存入数据库，关联原内容 messageId
-
-### Web 展示
-
-1. 用户访问 rkpin-web
-2. rkpin-web 解析频道内容
-3. 通过 messageId 从数据库获取额外信息
-4. 处理并在页面上展示完整内容
-
-### AI 交互
-
-1. 用户在 rkpin-web 选择 AI 模型
-2. 服务器调用 llm-api 实现内容对话
-3. 管理员可通过 rkpin-bot 在管理群组中使用 AI 功能：
-   - 总结对话
-   - AI 问答
-   - 视频生成
-
-## 系统扩展
-
-1. rkpin-bot 可调用外部 API 实现功能拓展
-2. 管理员通过 Telegram 群组与 rkpin-bot 交互，控制高级功能
-
-## 数据流
-
-1. 用户 -> rkpin-bot -> 管理群组 -> 频道 -> 数据库
-2. 频道 -> rkpin-web <- 数据库
-3. rkpin-web <-> llm-api
-4. 管理群组 <-> rkpin-bot <-> 外部 API
-
-## 下一步计划
-
-1. 增加、优化内容爬取和解析算法
-2. 支持更多 AI 模型
-3. 支持更多API
-4. 实现内容分类、总结、推荐
-5. 开发移动端、桌面端应用
+### 内容获取
+1. 访问公开频道的链接，使用cheerio + https-proxy-agent解析html内容
+2. 将获取到的去重（messageId唯一）频道内容按照标准格式处理解析后保存为json文件（src\public\），具体标准见文档：[README_tg_channel_data_rule.md](README_tg_channel_data_rule.md)
+3. 通过dataParser读取json文件，通过route的API获取messageId对应内容。如果json文件中没有messageId对应的内容，则继续获取频道内容
