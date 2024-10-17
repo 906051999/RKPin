@@ -57,7 +57,17 @@ async function parseMessage($, element, updateStatus) {
     }
     
     const messageId = dataPost.split('/')[1];
-    const type = $message.find('.link_preview_site_name').text().trim() || 'Telegram';
+    let type = 'Telegram';
+    const linkPreviewSiteName = $message.find('.link_preview_site_name').text().trim();
+    
+    if (linkPreviewSiteName) {
+      if (['Bilibili', 'GitHub', 'Weixin Official Accounts Platform', 'Weibo'].includes(linkPreviewSiteName)) {
+        type = linkPreviewSiteName === 'Weixin Official Accounts Platform' ? 'Weixin' : linkPreviewSiteName;
+      } else {
+        type = 'Link';
+      }
+    }
+
     const replyId = $message.find('.tgme_widget_message_reply').attr('href')?.split('/').pop() || '';
     const author = $message.find('.tgme_widget_message_from_author').text().trim();
     const date = $message.find('.tgme_widget_message_date time').attr('datetime');

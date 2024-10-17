@@ -76,9 +76,15 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetchContent();
-    fetchTotalMessages();
-  }, [fetchContent, fetchTotalMessages]);
+    const storedContent = JSON.parse(localStorage.getItem('parsed_content') || '[]');
+    if (storedContent.length > 0) {
+      setContent(storedContent);
+      setTotalMessages(storedContent.length);
+      setLastMessageId(storedContent[storedContent.length - 1].messageId);
+    } else {
+      fetchContent(true); // 只在没有存储的内容时初始加载
+    }
+  }, [fetchContent]);
 
   const value = {
     content,
@@ -94,4 +100,3 @@ export const AppProvider = ({ children }) => {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
-

@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import BilibiliContent from '../common/content/BilibiliContent';
-import GitHubContent from '../common/content/GitHubContent';
+import LinkContent from './content/LinkContent';
 import TelegramContent from '../common/content/TelegramContent';
+import WeixinContent from '../common/content/WeixinContent';
+import WeiboContent from '../common/content/WeiboContent';
 import ChatPart from './ChatPart';
-import { abortChat } from '@/lib/llm/chat';
 
 const presetTagConfig = {
   GitHub: ['项目总结', '技术分析'],
   Bilibili: ['视频摘要', '观点评析'],
   Telegram: ['消息总结', '话题分析'],
+  Weixin: ['内容总结', '观点分析'],
+  'Weixin Official Accounts Platform': ['内容总结', '观点分析'],
+  Weibo: ['内容摘要', '话题评析'],
+  Link: ['网站总结', '类型分析'],
 };
 
 const Card = ({ message, isVertical }) => {
@@ -49,13 +54,21 @@ const Card = ({ message, isVertical }) => {
       return <p className="text-gray-700">{message.content || '无内容'}</p>;
     }
 
-    switch (message.type) {
-      case 'Bilibili':
+    console.log('Rendering content for type:', message.type, 'Content:', message.parsedContent); // 添加日志
+
+    switch (message.type.toLowerCase()) {
+      case 'bilibili':
         return <BilibiliContent content={message.parsedContent} />;
-      case 'GitHub':
-        return <GitHubContent content={message.parsedContent} />;
-      case 'Telegram':
+      case 'link':
+      case 'github':
+        return <LinkContent content={message.parsedContent} />;
+      case 'telegram':
         return <TelegramContent content={message.parsedContent} />;
+      case 'weixin':
+      case 'weixin official accounts platform':
+        return <WeixinContent content={message.parsedContent} />;
+      case 'weibo':
+        return <WeiboContent content={message.parsedContent} />;
       default:
         return <p className="text-gray-700">{JSON.stringify(message.parsedContent)}</p>;
     }

@@ -20,6 +20,22 @@ const presetTagConfig = {
     { tag: '消息总结', prompt: '请总结以下Telegram消息的主要内容，提炼出核心信息：' },
     { tag: '话题分析', prompt: '请分析以下Telegram消息涉及的主要话题，并探讨其潜在的社会影响：' },
   ],
+  Weixin: [
+    { tag: '内容总结', prompt: '请对以下微信公众号文章进行简要总结，包括主要主题和关键信息：' },
+    { tag: '观点分析', prompt: '请分析以下微信公众号文章中表达的主要观点，评估其可信度和潜在影响：' },
+  ],
+  'Weixin Official Accounts Platform': [
+    { tag: '内容总结', prompt: '请对以下微信公众号文章进行简要总结，包括主要主题和关键信息：' },
+    { tag: '观点分析', prompt: '请分析以下微信公众号文章中表达的主要观点，评估其可信度和潜在影响：' },
+  ],
+  Weibo: [
+    { tag: '内容摘要', prompt: '请为以下微博内容提供一个简洁的摘要，包括主要话题和关键点：' },
+    { tag: '话题评析', prompt: '请分析以下微博内容涉及的主要话题，并探讨其在社交媒体上的传播影响：' },
+  ],
+  Link: [
+    { tag: '网站总结', prompt: '请对以下网站内容进行简要总结，包括主要功能和关键特点：' },
+    { tag: '类型分析', prompt: '请分析该网站的类型和定位，评估其在相关领域的影响力和特色：' },
+  ],
 };
 
 const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages, onClearChat }) => {
@@ -121,6 +137,11 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
     let message = config.prompt + '\n\n';
 
     switch (contentType) {
+      case 'Link':
+        message += `网站标题：${content.title}\n\n`;
+        message += `网站描述：${content.previewDescription}\n\n`;
+        message += `网站链接：${content.link}\n\n`;
+        break;
       case 'GitHub':
         try {
           setStatus('正在获取 README...');
@@ -151,9 +172,19 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
           message += `转发自：${content.forwardFrom}\n\n`;
         }
         break;
-      case 'Yangkeduo':
-        message += `商品信息：${content.message}\n\n`;
-        message += `链接：${content.message.match(/https:\/\/[^\s]+/)[0]}\n\n`;
+      case 'Weixin':
+      case 'Weixin Official Accounts Platform':
+          message += `文章标题：${content.title}\n\n`;
+          message += `文章链接：${content.link}\n\n`;
+          message += `注意：无法获取完整文章内容，请基于可用信息进行分析。`;
+        break;
+      case 'Weibo':
+        message += `微博标题：${content.title}\n\n`;
+        if (content.previewDescription) {
+          message += `微博内容：${content.previewDescription}\n\n`;
+        }
+        message += `微博链接：${content.link}\n\n`;
+        break;
       default:
         message += `${JSON.stringify(content)}`;
     }

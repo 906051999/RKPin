@@ -95,3 +95,31 @@
     - 类名：tgme_widget_message_photo_wrap 或者 tgme_widget_message_video_thumb
     - 举例1：`<a class="tgme_widget_message_photo_wrap 4920400047552703609 1145619910_456240249" href="https://t.me/rk_pins/99" style="width:800px;background-image:url('https://cdn1.cdn-telegram.org/file/c9KmZDd4ldh_aYcKGsDd8bTix0_4xyK4YG2NY2MVRyQhCCDi-tOzO7J-C2MTvxxE-1JVwbbgGOhd6rCGH3NrsBH91bzOWoyC3fg1iN77kyWtuHuhxkuZDGrF_8vfnB-8jX9WZqzSa5b89YYbpgjqMkNUXfeYcUhJbp83x8F0-Vcc2_kb_UNI5C5DcEhgZliXAkJMiMpDlscyA37MXk2s1xThxkXtXt8OCuLTRnG1f6b17rYC0yxj_njpETn840OGvbnWTIgVZU7FKDQTr6t5qF0snnxcz4sjP65oZJTp1Ap2pWTY998r2_NnKZVtnRqSYfVb9MBudywmJEEY5G_-Kg.jpg')"><div class="tgme_widget_message_photo" style="padding-top:56.25%"></div></a>`，其中图片地址：`https://cdn1.cdn-telegram.org/file/c9KmZDd4ldh_aYcKGsDd8bTix0_4xyK4YG2NY2MVRyQhCCDi-tOzO7J-C2MTvxxE-1JVwbbgGOhd6rCGH3NrsBH91bzOWoyC3fg1iN77kyWtuHuhxkuZDGrF_8vfnB-8jX9WZqzSa5b89YYbpgjqMkNUXfeYcUhJbp83x8F0-Vcc2_kb_UNI5C5DcEhgZliXAkJMiMpDlscyA37MXk2s1xThxkXtXt8OCuLTRnG1f6b17rYC0yxj_njpETn840OGvbnWTIgVZU7FKDQTr6t5qF0snnxcz4sjP65oZJTp1Ap2pWTY998r2_NnKZVtnRqSYfVb9MBudywmJEEY5G_-Kg.jpg`
     - 举例2：`<i class="tgme_widget_message_video_thumb" style="background-image:url('https://cdn1.cdn-telegram.org/file/go1Bzk9ssQAzDjJ16ZZZ-FGTjwxlHT0wOSAaU0fctHgRwL54uRm4oCKUEu77b5oHveu0CnsgGFfk6T7Nvq_dg1UNHtU5E7L-bKPMSM_XGt4qNyDn2cknoefFcHo2Uag6Y_usisnqxqTrbBy8MWusOYQ12Pk3PtQzgELQJA7o0S3Ufq-wIZl5O3oDGlTQjKD9kjRAEG0OqHHVx7zPwUbrYcKy6J-DAnsjBBXGxvjPI5GU6LUmkGHVxTb4IcbzChF9pXY9Ane16Weagwxc5WIdgjUXP37Fnh4heKIK4RROCJRbn3FVcIOAstGQnmDjrL5PnNDocVp5C4hzQ9Xx9p0DHA')"></i>`，其中图片地址：`https://cdn1.cdn-telegram.org/file/go1Bzk9ssQAzDjJ16ZZZ-FGTjwxlHT0wOSAaU0fctHgRwL54uRm4oCKUEu77b5oHveu0CnsgGFfk6T7Nvq_dg1UNHtU5E7L-bKPMSM_XGt4qNyDn2cknoefFcHo2Uag6Y_usisnqxqTrbBy8MWusOYQ12Pk3PtQzgELQJA7o0S3Ufq-wIZl5O3oDGlTQjKD9kjRAEG0OqHHVx7zPwUbrYcKy6J-DAnsjBBXGxvjPI5GU6LUmkGHVxTb4IcbzChF9pXY9Ane16Weagwxc5WIdgjUXP37Fnh4heKIK4RROCJRbn3FVcIOAstGQnmDjrL5PnNDocVp5C4hzQ9Xx9p0DHA`
+  
+#### 4. Weixin Official Accounts Platform
+
+- link：
+    - 类名：tgme_widget_message_link_preview
+    - 举例：`<a class="tgme_widget_message_link_preview" href="https://mp.weixin.qq.com/s/rgRmOfoPr7x1TZhyb-1ifg">`，link为`https://mp.weixin.qq.com/s/rgRmOfoPr7x1TZhyb-1ifg`
+
+- title：
+    - 类名：link_preview_title
+    - 举例：`<div class="link_preview_title" dir="auto">漏洞频发、故障率高 应系统排查英特尔产品网络安全风险</div>`，其中`漏洞频发、故障率高 应系统排查英特尔产品网络安全风险`为title
+
+- previewImage：
+    - 类名：link_preview_right_image
+    - 举例：`<i class="link_preview_right_image" style="background-image:url('https://cdn4.cdn-telegram.org/file/cElphEXnW7tDK66WicTYsPcw_eupApT99-Qa2TNOjEbnuFEibDD2fEB7JSGKn5O24tS_qBjwHP0_bO4sRjCVEYnKWOVQW1_fhR3EK4Ou6DJCPEwrsAnwzXWToSpNGz4PFjLqpCmD9PMdjm7idhzMmPBJsC9OBS_JFoSGjC5YXIP3yCjiwPCQYKd31PtlLpg2KJDfHh_yFy1diMMKSvWJygBACS4p2G0gtbf9nJhqS7fiQZZ6BrJ6Sgw_PEoQZHXgYYEKZpotdTUCks94xDAKayY2ZCqVzO7yD3ipNEWtjRaj6cCzdqmXRSiy6BesibIfMeiDuAlY_Gx9cK4ZrcfkQQ.jpg')"></i>`，其中图片地址：`https://cdn4.cdn-telegram.org/file/cElphEXnW7tDK66WicTYsPcw_eupApT99-Qa2TNOjEbnuFEibDD2fEB7JSGKn5O24tS_qBjwHP0_bO4sRjCVEYnKWOVQW1_fhR3EK4Ou6DJCPEwrsAnwzXWToSpNGz4PFjLqpCmD9PMdjm7idhzMmPBJsC9OBS_JFoSGjC5YXIP3yCjiwPCQYKd31PtlLpg2KJDfHh_yFy1diMMKSvWJygBACS4p2G0gtbf9nJhqS7fiQZZ6BrJ6Sgw_PEoQZHXgYYEKZpotdTUCks94xDAKayY2ZCqVzO7yD3ipNEWtjRaj6cCzdqmXRSiy6BesibIfMeiDuAlY_Gx9cK4ZrcfkQQ.jpg`
+  
+#### 5. Weibo
+
+- link：
+    - 类名：tgme_widget_message_link_preview
+    - 举例：`<a class="tgme_widget_message_link_preview" href="https://weibo.com/2146189957/OBzWNaxXM">`，link为`https://weibo.com/2146189957/OBzWNaxXM`
+
+- title：
+    - 类名：link_preview_title
+    - 举例：`<div class="link_preview_title" dir="auto">伴随杭州场音乐会的落幕，仓促的调息也近尾... 来自-杨奇- - 微博</div>`，其中`伴随杭州场音乐会的落幕，仓促的调息也近尾... 来自-杨奇- - 微博`为title
+
+- previewDescription：
+    - 类名：link_preview_description
+    - 举例：`<div class="link_preview_description" dir="auto">伴随杭州场音乐会的落幕，仓促的调息也近尾声。跑了很多地方，尝试放松心情，一个月的时间，却好像过了一年。<br>  对于内容行业来说，无论失落和喜悦，结果都是短暂的。唯一长久的幸福，永远来自于充满未知的过程。...</div>`，其中`伴随杭州场音乐会的落幕，仓促的调息也近尾声。跑了很多地方，尝试放松心情，一个月的时间，却好像过了一年。<br>  对于内容行业来说，无论失落和喜悦，结果都是短暂的。唯一长久的幸福，永远来自于充满未知的过程。...`为previewDescription
