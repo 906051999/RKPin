@@ -16,8 +16,9 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "RK Pins",
-  description: "RK Pins Telegram Channel",
+  title: "RKPin | 对话式内容集合站",
+  description: "聚合、对话、分享，带点AI的内容聚合平台",
+  keywords: "RKPin, 内容集合, 对话式, telegram, 多端支持",
 };
 
 export default function RootLayout({ children }) {
