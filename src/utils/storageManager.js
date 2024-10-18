@@ -11,10 +11,11 @@ export const saveChannelData = (channelUrl, data) => {
 
   channels.unshift(channelUrl);
 
-  if (channels.length > MAX_CHANNELS) {
-    const removedChannel = channels.pop();
-    localStorage.removeItem(`channel_${removedChannel}`);
-  }
+  // 移除这个限制
+  // if (channels.length > MAX_CHANNELS) {
+  //   const removedChannel = channels.pop();
+  //   localStorage.removeItem(`channel_${removedChannel}`);
+  // }
 
   setChannelStack(channels);
   localStorage.setItem(`channel_${channelUrl}`, JSON.stringify(data));

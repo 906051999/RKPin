@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { AppContext } from '@/context/AppContext';
 import { getChannelStack, setChannelStack, getChannelData, isClientSide } from '@/utils/storageManager';
 import DOMPurify from 'dompurify';
@@ -8,6 +8,8 @@ const ChannelList = ({ onClose }) => {
   const [channels, setChannels] = useState([]);
   const [newChannel, setNewChannel] = useState('');
   const [error, setError] = useState('');
+  const [showWarning, setShowWarning] = useState(false);
+  const newChannelRef = useRef(null);
 
   useEffect(() => {
     if (isClientSide()) {
@@ -35,15 +37,30 @@ const ChannelList = ({ onClose }) => {
       return;
     }
 
-    if (!channels.some(channel => channel.url === formattedChannel)) {
-      const updatedChannels = [{ url: formattedChannel, author: '' }, ...channels].slice(0, 5);
-      setChannels(updatedChannels);
-      if (isClientSide()) {
-        setChannelStack(updatedChannels.map(channel => channel.url));
-      }
-      setNewChannel('');
-      setError('');
+    if (channels.some(channel => channel.url === formattedChannel)) {
+      setError('该频道已存在于列表中。');
+      return;
     }
+
+    const updatedChannels = [{ url: formattedChannel, author: '' }, ...channels];
+    setChannels(updatedChannels);
+    if (isClientSide()) {
+      setChannelStack(updatedChannels.map(channel => channel.url));
+    }
+    setNewChannel('');
+    setError('');
+
+    // 当频道数量达到 10 个时显示警告
+    if (updatedChannels.length >= 10 && !showWarning) {
+      setShowWarning(true);
+    }
+
+    // 使用 setTimeout 确保在 DOM 更新后滚动
+    setTimeout(() => {
+      if (newChannelRef.current) {
+        newChannelRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 0);
   };
 
   const handleSelectChannel = (channelUrl) => {
@@ -94,11 +111,17 @@ const ChannelList = ({ onClose }) => {
             添加频道
           </button>
           {error && <p className="text-red-500 mt-2">{error}</p>}
+          {showWarning && (
+            <p className="text-yellow-500 mt-2">
+              警告：添加过多频道可能会影响性能。请谨慎添加。
+            </p>
+          )}
         </div>
         <ul className="max-h-60 overflow-y-auto">
           {channels.map((channel, index) => (
             <li
               key={index}
+              ref={index === 0 ? newChannelRef : null}
               className={`cursor-pointer p-2 hover:bg-gray-100 rounded flex justify-between items-center ${
                 channel.url === channelUrl ? 'bg-blue-100 border-l-4 border-blue-500' : ''
               }`}
