@@ -66,7 +66,10 @@ async function parseMessage($, element, updateStatus, channelName) {
       }
     }
 
-    const replyId = $message.find('.tgme_widget_message_reply').attr('href')?.split('/').pop() || '';
+    // 替换 replyId 的获取逻辑
+    const $replyContent = $message.find('.tgme_widget_message_reply');
+    const replyContent = $replyContent.length ? $replyContent.prop('outerHTML') : '';
+
     const author = $message.find('.tgme_widget_message_owner_name').prop('outerHTML') || '';
     const date = $message.find('.tgme_widget_message_date time').attr('datetime');
 
@@ -79,14 +82,15 @@ async function parseMessage($, element, updateStatus, channelName) {
       uniqueId,
       messageId,
       type,
-      replyId,
+      replyContent, // 替换 replyId
       author,
       date,
       parsedContent
     };
   } catch (error) {
+    updateStatus(`错误堆栈: ${error.stack}`);
     updateStatus(`解析消息时出错: ${error.message}`);
-    updateStatus(`消息HTML: ${$(element).html()}`);
+    updateStatus(`错误发生在: ${error.stack.split('\n')[1].trim()}`);
     return null; // 跳过这个消息
   }
 }
@@ -115,7 +119,7 @@ export async function getChannelContent(updateStatus = console.log, before = '',
 
     updateStatus(`成功解析的消息数量: ${validMessages.length}`);
 
-    // 检查是否存在 messageId 为 1 的内容
+    // 检查是否��在 messageId 为 1 的内容
     const isComplete = validMessages.some(msg => msg.messageId === '1');
 
     return { content: validMessages, isComplete };

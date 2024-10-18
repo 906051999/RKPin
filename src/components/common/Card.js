@@ -5,6 +5,7 @@ import LinkContent from './content/LinkContent';
 import TelegramContent from '../common/content/TelegramContent';
 import WeixinContent from '../common/content/WeixinContent';
 import WeiboContent from '../common/content/WeiboContent';
+import ReplyContent from './content/ReplyContent';
 import ChatPart from './ChatPart';
 
 const presetTagConfig = {
@@ -106,6 +107,9 @@ const Card = ({ message, isVertical }) => {
         </span>
       </div>
       <div className="text-sm text-gray-600 mb-3">类型: {message.type}</div>
+      
+      {message.replyContent && <ReplyContent content={message.replyContent} />}
+      
       {renderContent()}
       {message.replyId && (
         <div className="text-sm text-gray-500 mt-4">

@@ -10,7 +10,9 @@ export default function Header({
   handleClearLocalStorage,
   isHorizontal,
   toggleChatBar,
-  showChatBar
+  showChatBar,
+  error,
+  retryCount
 }) {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -27,7 +29,11 @@ export default function Header({
         </div>
         <div className="flex items-center space-x-4">
           <span className="text-gray-600">加载消息 {totalMessages} 条</span>
-          {isComplete ? (
+          {error ? (
+            <div className="text-red-500">
+              错误: {error} {retryCount > 0 && `(重试中: ${retryCount}/3)`}
+            </div>
+          ) : isComplete ? (
             <button
               onClick={handleRefresh}
               className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center"

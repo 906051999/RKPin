@@ -13,6 +13,8 @@ export const AppProvider = ({ children }) => {
   const [channelUrl, setChannelUrl] = useState(process.env.TELEGRAM_CHANNEL_URL);
   const [shouldAutoLoad, setShouldAutoLoad] = useState(true);
   const [oldestMessageId, setOldestMessageId] = useState(null);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (isClientSide()) {
@@ -24,6 +26,7 @@ export const AppProvider = ({ children }) => {
   const fetchContent = useCallback(async (refresh = false) => {
     if (!channelUrl) return;
     setIsLoading(true);
+    setError(null);
 
     const fetchProcess = {
       cancel: () => {
@@ -36,15 +39,12 @@ export const AppProvider = ({ children }) => {
     try {
       let storedContent = getChannelData(channelUrl) || [];
       
-      // 如果是刷新或首次加载，从最新的消息开始获取
-      // 如果是加载更多，则使用最老的消息ID
       const url = `/api/refresh?channelUrl=${encodeURIComponent(channelUrl)}${!refresh && oldestMessageId ? `&before=${oldestMessageId}` : ''}`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const { content: newContent, isComplete: complete } = await response.json();
       
-      // 合并新旧内容，保留最新版本
       const mergedContent = mergeContent(storedContent, newContent);
 
       saveChannelData(channelUrl, mergedContent);
@@ -58,13 +58,21 @@ export const AppProvider = ({ children }) => {
       }
 
       setShouldAutoLoad(false);
+      setRetryCount(0);
     } catch (error) {
       console.error('Error fetching content:', error);
+      setError(error.message);
+      if (retryCount < 3) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchContent(refresh);
+        }, 5000);
+      }
     } finally {
       setIsLoading(false);
       ProcessManager.cancelProcess(channelUrl);
     }
-  }, [channelUrl, oldestMessageId]);
+  }, [channelUrl, oldestMessageId, retryCount]);
 
   // 合并新旧内容的函数保持不变
   const mergeContent = (oldContent, newContent) => {
@@ -151,6 +159,7 @@ export const AppProvider = ({ children }) => {
     channelUrl,
     setChannelUrl,
     selectChannel,
+    error
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

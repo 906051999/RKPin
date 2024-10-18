@@ -20,6 +20,8 @@ const Home = () => {
     handleRefresh,
     handleLoadMore,
     handleClearLocalStorage,
+    error,
+    retryCount
   } = useContext(AppContext);
 
   useEffect(() => {
@@ -72,6 +74,8 @@ const Home = () => {
         showChatBar={showChatBar}
         newContentAvailable={newContentAvailable}
         onScrollToTop={handleScrollToTop}
+        error={error}
+        retryCount={retryCount}
       />
       <Layout
         isVertical={isVertical}

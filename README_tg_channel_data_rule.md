@@ -10,9 +10,9 @@
     - 类名：link_preview_site_name accent_color
     - 举例：`<div class="link_preview_site_name accent_color">GitHub</div>`，type为GitHub
 
-- replyId：
+- replyContent：
     - 类名：tgme_widget_message_reply
-    - 举例：`<a class="tgme_widget_message_reply" href="https://t.me/rk_pins/41">`，replyId为41
+    - 该类下所有内容
     - 若无该class则为默认空
 
 - author：

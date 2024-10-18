@@ -18,7 +18,7 @@ const TelegramContent = ({ content }) => {
   return (
     <div className="telegram-content">
       {content.forwardFrom && (
-        <p className="text-sm text-gray-500 mb-2">{content.forwardFrom}</p>
+        <p className="text-sm text-gray-500 mb-2">Forwarded from: {content.forwardFrom}</p>
       )}
       {content.message && (
         <div 

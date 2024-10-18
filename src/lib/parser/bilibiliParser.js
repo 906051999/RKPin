@@ -11,19 +11,34 @@ export async function parseBilibili(message) {
 
   // 处理 previewDescription
   const [fullContent] = previewDescription.split('，相关视频：');
-  const [description, ...rest] = fullContent.split(', 视频播放量');
-  const stats = rest.join(', 视频播放量').split(', 视频作者')[0];
-  const authorInfo = rest.join(', 视频播放量').split(', 视频作者')[1];
+  let description = fullContent;
+  let stats = null;
+  let author = null;
+  let authorDescription = null;
 
-  const [author, authorDescription] = authorInfo.split(', 作者简介');
+  if (fullContent) {
+    const parts = fullContent.split(', 视频播放量');
+    description = parts[0].trim();
+    
+    if (parts.length > 1) {
+      const restParts = parts[1].split(', 视频作者');
+      stats = restParts[0] ? `视频播放量${restParts[0].trim()}` : null;
+      
+      if (restParts.length > 1) {
+        const authorParts = restParts[1].split(', 作者简介');
+        author = authorParts[0] ? authorParts[0].trim() : null;
+        authorDescription = authorParts.length > 1 ? authorParts[1].trim() : null;
+      }
+    }
+  }
 
   return {
     link,
     title,
     previewImage,
-    description: description.trim(),
-    stats: stats ? `视频播放量${stats}` : null,
-    author: author ? author.trim() : null,
-    authorDescription: authorDescription ? authorDescription.trim() : null,
+    description,
+    stats,
+    author,
+    authorDescription,
   };
 }
