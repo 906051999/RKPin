@@ -9,6 +9,7 @@ const Home = () => {
   const [isVertical, setIsVertical] = useState(false);
   const [layoutDetermined, setLayoutDetermined] = useState(false);
   const [showChatBar, setShowChatBar] = useState(false);
+  const [newContentAvailable, setNewContentAvailable] = useState(false);
   const contentRef = useRef(null);
 
   const {
@@ -33,13 +34,20 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (contentRef.current && content.length > 0) {
-      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    if (content.length > 0) {
+      setNewContentAvailable(true);
     }
   }, [content]);
 
   const toggleChatBar = () => {
     setShowChatBar(prev => !prev);
+  };
+
+  const handleScrollToTop = () => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+      setNewContentAvailable(false);
+    }
   };
 
   if (!layoutDetermined) {
@@ -59,6 +67,11 @@ const Home = () => {
         handleRefresh={handleRefresh}
         handleLoadMore={handleLoadMore}
         handleClearLocalStorage={handleClearLocalStorage}
+        isHorizontal={!isVertical}
+        toggleChatBar={toggleChatBar}
+        showChatBar={showChatBar}
+        newContentAvailable={newContentAvailable}
+        onScrollToTop={handleScrollToTop}
       />
       <Layout
         isVertical={isVertical}
@@ -69,6 +82,8 @@ const Home = () => {
         showChatBar={showChatBar}
         toggleChatBar={toggleChatBar}
         contentRef={contentRef}
+        newContentAvailable={newContentAvailable}
+        onScrollToTop={handleScrollToTop}
       />
     </div>
   );

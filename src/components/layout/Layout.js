@@ -13,7 +13,9 @@ export default function Layout({
   handleRefresh,
   showChatBar,
   toggleChatBar,
-  contentRef
+  contentRef,
+  newContentAvailable,
+  onScrollToTop
 }) {
   return isVertical ? (
     <Vertical
@@ -21,6 +23,8 @@ export default function Layout({
       isLoading={isLoading}
       isComplete={isComplete}
       totalMessages={totalMessages}
+      newContentAvailable={newContentAvailable}
+      onScrollToTop={onScrollToTop}
     />
   ) : (
     <Horizontal

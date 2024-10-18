@@ -1,7 +1,15 @@
 import React, { useRef } from 'react';
 import DOMPurify from 'dompurify';
 
-const TimeLine = ({ groupedMessages, sortedDates, activeId, onTimelineClick, isComplete }) => {
+const TimeLine = ({ 
+  groupedMessages, 
+  sortedDates, 
+  activeId, 
+  onTimelineClick, 
+  isComplete,
+  newContentAvailable,
+  onScrollToTop
+}) => {
   const timelineRef = useRef(null);
 
   const getPreviewContent = (message) => {
@@ -55,6 +63,14 @@ const TimeLine = ({ groupedMessages, sortedDates, activeId, onTimelineClick, isC
     <div ref={timelineRef} className="w-1/4 lg:w-1/5 h-full overflow-y-auto bg-white shadow-md flex flex-col">
       <nav className="p-4 flex-grow">
         <h2 className="text-xl font-bold mb-4 text-gray-800 sticky top-0 bg-white z-10 py-2">时间线</h2>
+        {newContentAvailable && (
+          <button
+            onClick={onScrollToTop}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded mb-4 hover:bg-blue-600 transition duration-300"
+          >
+            新内容可用，点击查看
+          </button>
+        )}
         <ul className="space-y-4">
           {sortedDates.map((date) => (
             <li key={date} className="relative">

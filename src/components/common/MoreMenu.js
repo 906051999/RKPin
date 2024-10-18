@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { AppContext } from '@/context/AppContext';
 import ChannelList from './ChannelList';
 
-export default function MoreMenu() {
+export default function MoreMenu({ isHorizontal, toggleChatBar, showChatBar }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showChannelList, setShowChannelList] = useState(false);
   const menuRef = useRef(null);
@@ -52,6 +52,17 @@ export default function MoreMenu() {
             >
               频道列表
             </button>
+            {isHorizontal && (
+              <button
+                onClick={() => {
+                  toggleChatBar();
+                  setIsOpen(false);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {showChatBar ? '隐藏聊天栏' : '显示聊天栏'}
+              </button>
+            )}
           </div>
         </div>
       )}

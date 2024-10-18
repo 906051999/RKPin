@@ -12,6 +12,7 @@ export const AppProvider = ({ children }) => {
   const [lastMessageId, setLastMessageId] = useState(null);
   const [channelUrl, setChannelUrl] = useState(process.env.TELEGRAM_CHANNEL_URL);
   const [shouldAutoLoad, setShouldAutoLoad] = useState(true);
+  const [oldestMessageId, setOldestMessageId] = useState(null);
 
   useEffect(() => {
     if (isClientSide()) {
@@ -35,36 +36,25 @@ export const AppProvider = ({ children }) => {
     try {
       let storedContent = getChannelData(channelUrl) || [];
       
-      if (refresh) {
-        storedContent = [];
-        setLastMessageId(null);
-      }
-
-      const url = refresh || storedContent.length === 0
-        ? `/api/refresh?channelUrl=${encodeURIComponent(channelUrl)}`
-        : `/api/content?before=${lastMessageId}&channelUrl=${encodeURIComponent(channelUrl)}`;
+      // 如果是刷新或首次加载，从最新的消息开始获取
+      // 如果是加载更多，则使用最老的消息ID
+      const url = `/api/refresh?channelUrl=${encodeURIComponent(channelUrl)}${!refresh && oldestMessageId ? `&before=${oldestMessageId}` : ''}`;
 
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const { content: newContent, isComplete: complete } = await response.json();
       
-      const uniqueContent = [...storedContent, ...newContent].reduce((acc, current) => {
-        const x = acc.find(item => item.uniqueId === current.uniqueId);
-        if (!x) {
-          return acc.concat([current]);
-        } else {
-          return acc;
-        }
-      }, []);
+      // 合并新旧内容，保留最新版本
+      const mergedContent = mergeContent(storedContent, newContent);
 
-      const sortedContent = uniqueContent.sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
-      saveChannelData(channelUrl, sortedContent);
-      setContent(sortedContent);
-      setTotalMessages(sortedContent.length);
+      saveChannelData(channelUrl, mergedContent);
+      setContent(mergedContent);
+      setTotalMessages(mergedContent.length);
       setIsComplete(complete);
       
-      if (sortedContent.length > 0) {
-        setLastMessageId(sortedContent[sortedContent.length - 1].messageId);
+      if (mergedContent.length > 0) {
+        setLastMessageId(mergedContent[0].messageId);
+        setOldestMessageId(mergedContent[mergedContent.length - 1].messageId);
       }
 
       setShouldAutoLoad(false);
@@ -74,7 +64,26 @@ export const AppProvider = ({ children }) => {
       setIsLoading(false);
       ProcessManager.cancelProcess(channelUrl);
     }
-  }, [lastMessageId, channelUrl]);
+  }, [channelUrl, oldestMessageId]);
+
+  // 合并新旧内容的函数保持不变
+  const mergeContent = (oldContent, newContent) => {
+    const contentMap = new Map();
+    
+    // 先添加旧内容
+    oldContent.forEach(item => {
+      contentMap.set(item.uniqueId, item);
+    });
+
+    // 用新内容更新或添加
+    newContent.forEach(item => {
+      contentMap.set(item.uniqueId, item);
+    });
+
+    // 转换回数组并排序
+    return Array.from(contentMap.values())
+      .sort((a, b) => parseInt(b.messageId) - parseInt(a.messageId));
+  };
 
   const handleRefresh = useCallback(() => {
     fetchContent(true);
@@ -93,6 +102,7 @@ export const AppProvider = ({ children }) => {
       setTotalMessages(0);
       setIsComplete(false);
       setLastMessageId(null);
+      setOldestMessageId(null);
       setShouldAutoLoad(true);
     }
   }, [channelUrl]);
@@ -102,20 +112,12 @@ export const AppProvider = ({ children }) => {
     setChannelUrl(newChannelUrl);
     if (isClientSide()) {
       setLastSelectedChannel(newChannelUrl);
-      const storedContent = getChannelData(newChannelUrl);
-      if (storedContent) {
-        setContent(storedContent);
-        setTotalMessages(storedContent.length);
-        setIsComplete(false);
-        setLastMessageId(storedContent[storedContent.length - 1]?.messageId || null);
-        setShouldAutoLoad(false);
-      } else {
-        setContent([]);
-        setTotalMessages(0);
-        setIsComplete(false);
-        setLastMessageId(null);
-        setShouldAutoLoad(true);
-      }
+      setContent([]);
+      setTotalMessages(0);
+      setIsComplete(false);
+      setLastMessageId(null);
+      setOldestMessageId(null);
+      setShouldAutoLoad(true);
     }
   }, []);
 
