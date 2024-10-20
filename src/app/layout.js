@@ -16,9 +16,9 @@ const geistMono = localFont({
 });
 
 export const metadata = {
-  title: "RKPin | 对话式内容集合站",
-  description: "聚合、对话、分享，带点AI的内容聚合平台",
-  keywords: "RKPin, 内容集合, 对话式, telegram, 多端支持",
+  title: "RKPin | AI增强内容聚合平台",  
+  description: "聚合用户定制内容，与内容实时AI互动。",
+  keywords: "内容聚合, Telegram, RSS, AI",
 };
 
 export default function RootLayout({ children }) {
