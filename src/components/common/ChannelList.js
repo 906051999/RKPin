@@ -24,16 +24,26 @@ const ChannelList = ({ onClose }) => {
   }, []);
 
   const addChannel = () => {
-    let formattedChannel = newChannel;
-    const channelRegex = /^https:\/\/t\.me\/(s\/)?[a-zA-Z0-9_]+$/;
+    let formattedChannel = newChannel.trim();
     
-    // 自动格式化链接
-    if (formattedChannel.match(/^https:\/\/t\.me\/[a-zA-Z0-9_]+$/)) {
-      formattedChannel = formattedChannel.replace('https://t.me/', 'https://t.me/s/');
+    // 处理纯频道名称格式
+    if (/^[a-zA-Z0-9_]+$/.test(formattedChannel)) {
+      formattedChannel = `https://t.me/s/${formattedChannel}`;
+    }
+    
+    // 处理不带 s/ 的链接
+    if (formattedChannel.match(/^(https?:\/\/)?t\.me\/[a-zA-Z0-9_]+$/)) {
+      formattedChannel = formattedChannel.replace(/^(https?:\/\/)?t\.me\//, 'https://t.me/s/');
     }
 
-    if (!channelRegex.test(formattedChannel)) {
-      setError('无效的频道链接。格式应为：https://t.me/s/ChannelName 或 https://t.me/ChannelName');
+    // 处理带 s/ 的链接
+    if (formattedChannel.match(/^(https?:\/\/)?t\.me\/s\/[a-zA-Z0-9_]+$/)) {
+      formattedChannel = formattedChannel.replace(/^(https?:\/\/)?t\.me\//, 'https://t.me/');
+    }
+
+    // 最终验证
+    if (!formattedChannel.match(/^https:\/\/t\.me\/s\/[a-zA-Z0-9_]+$/)) {
+      setError('无效的频道链接。支持的格式：\n- https://t.me/s/ChannelName\n- https://t.me/ChannelName\n- ChannelName');
       return;
     }
 
