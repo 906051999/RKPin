@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import Card from '@/components/common/Card';
+import HorizontalCard from './HorizontalCard';
 
 const MessageList = React.forwardRef(({ groupedMessages, sortedDates, onCardFocus, className }, ref) => {
   const messageRefs = useRef({});
@@ -26,7 +26,7 @@ const MessageList = React.forwardRef(({ groupedMessages, sortedDates, onCardFocu
                 onClick={() => handleCardInteraction(message.uniqueId)}
                 onTouchStart={() => handleCardInteraction(message.uniqueId)}
               >
-                <Card message={message} />
+                <HorizontalCard message={message} />
               </div>
             ))}
           </div>

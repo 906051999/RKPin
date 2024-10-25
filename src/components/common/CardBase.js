@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { getChatMessages, setChatMessages, clearChatMessages, isClientSide } from '@/utils/storageManager';
-import BilibiliContent from '../common/content/BilibiliContent';
+import BilibiliContent from './content/BilibiliContent';
 import LinkContent from './content/LinkContent';
-import TelegramContent from '../common/content/TelegramContent';
-import WeixinContent from '../common/content/WeixinContent';
-import WeiboContent from '../common/content/WeiboContent';
+import TelegramContent from './content/TelegramContent';
+import WeixinContent from './content/WeixinContent';
+import WeiboContent from './content/WeiboContent';
 import ReplyContent from './content/ReplyContent';
-import ChatPart from './ChatPart';
+import ChatPart from './CardChatPart';
 
 const presetTagConfig = {
-  GitHub: ['项目总结', '技术分析'],
-  Bilibili: ['视频摘要', '观点评析'],
-  Telegram: ['消息总结', '话题分析'],
-  Weixin: ['内容总结', '观点分析'],
-  'Weixin Official Accounts Platform': ['内容总结', '观点分析'],
-  Weibo: ['内容摘要', '话题评析'],
-  Link: ['网站总结', '类型分析'],
-  UnsupportedMedia: ['内容描述', '媒体类型'],
-};
+    GitHub: ['项目总结', '技术分析'],
+    Bilibili: ['视频摘要', '观点评析'],
+    Telegram: ['消息总结', '话题分析'],
+    Weixin: ['内容总结', '观点分析'],
+    'Weixin Official Accounts Platform': ['内容总结', '观点分析'],
+    Weibo: ['内容摘要', '话题评析'],
+    Link: ['网站总结', '类型分析'],
+    UnsupportedMedia: ['内容描述', '媒体类型'],
+};  
 
-const Card = ({ message, isVertical }) => {
+const CardBase = ({ message, isVertical, children }) => {
   const [showChatPart, setShowChatPart] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [hasHistory, setHasHistory] = useState(false);
@@ -95,58 +95,17 @@ const Card = ({ message, isVertical }) => {
     return { __html: message.author };
   };
 
-  return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <div className="flex justify-between items-center mb-4">
-        <span 
-          className="font-semibold text-gray-900"
-          dangerouslySetInnerHTML={renderAuthor()}
-        />
-        <span className="text-sm text-gray-500">
-          {new Date(message.date).toLocaleString('zh-CN')}
-        </span>
-      </div>
-      <div className="text-sm text-gray-600 mb-3">类型: {message.type}</div>
-      
-      {message.replyContent && <ReplyContent content={message.replyContent} />}
-      
-      {renderContent()}
-      {message.replyId && (
-        <div className="text-sm text-gray-500 mt-4">
-          回复消息ID: {message.replyId}
-        </div>
-      )}
-      
-      {!isVertical && (
-        <div className="flex justify-end items-center mt-4">
-          <button
-            onClick={handleAIChat}
-            className={`${
-              showChatPart ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
-            } text-white font-semibold py-1 px-2 rounded text-sm transition duration-300 ease-in-out flex items-center`}
-          >
-            {showChatPart ? '关闭对话' : 'AI对话'}
-            {hasHistory && !showChatPart && (
-              <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-2 h-2"></span>
-            )}
-          </button>
-        </div>
-      )}
-      
-      {(showChatPart || isVertical) && (
-        <div className={isVertical ? "mt-4" : "mt-4"}>
-          <ChatPart 
-            content={message.parsedContent}
-            contentType={message.type}
-            presetTags={getPresetTags()}
-            messages={chatMessages}
-            onUpdateMessages={handleUpdateChat}
-            onClearChat={handleClearChat}
-          />
-        </div>
-      )}
-    </div>
-  );
+  return children({
+    showChatPart,
+    hasHistory,
+    handleAIChat,
+    renderContent,
+    renderAuthor,
+    getPresetTags,
+    handleUpdateChat,
+    handleClearChat,
+    chatMessages,
+  });
 };
 
-export default Card;
+export default CardBase;

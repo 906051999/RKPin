@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+@import 'swiper/css/navigation';
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -76,4 +80,19 @@ a:hover {
 
 .telegram-content a:hover {
   color: #005580;
+}
+
+.date-tabs .swiper-slide {
+  width: auto;
+  padding: 1rem 1rem 0 0;
+}
+
+.swiper-pagination-bullet {
+  background: #4a5568;
+  opacity: 0.2;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  background: #3182ce;
 }
