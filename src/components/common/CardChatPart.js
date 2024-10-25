@@ -193,43 +193,11 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 max-h-96 flex flex-col">
-      <div className="mb-2 flex flex-wrap justify-between items-center">
-        <div>
-          {presetTags.map((tag, index) => (
-            <button
-              key={index}
-              onClick={() => handlePresetTag(tag)}
-              className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 mb-2 px-2.5 py-0.5 rounded"
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center">
-          <label className="flex items-center mr-2">
-            <input
-              type="checkbox"
-              checked={useWebSearch}
-              onChange={(e) => setUseWebSearch(e.target.checked)}
-              className="mr-1"
-            />
-            <span className="text-sm">联网搜索</span>
-          </label>
-          {messages.length > 0 && (
-            <button
-              onClick={handleClearChat}
-              className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-            >
-              清空对话
-            </button>
-          )}
-        </div>
-      </div>
-      <div ref={chatContainerRef} className="flex-grow overflow-y-auto mb-4">
+    <div className="bg-white rounded-lg shadow-md p-6 flex flex-col h-full">
+      <div ref={chatContainerRef} className="flex-grow overflow-y-auto mb-6 h-96 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {messages.map((msg, index) => (
-          <div key={index} className={`mb-2 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-            <span className={`inline-block p-2 rounded-lg ${msg.role === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+          <div key={index} className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+            <span className={`inline-block p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'} shadow-sm`}>
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -237,13 +205,13 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
                   code({node, inline, className, children, ...props}) {
                     const match = /language-(\w+)/.exec(className || '')
                     return !inline && match ? (
-                      <pre className={`language-${match[1]} p-2 rounded`}>
+                      <pre className={`language-${match[1]} p-3 rounded bg-gray-800 text-white overflow-x-auto`}>
                         <code className={`language-${match[1]}`} {...props}>
                           {children}
                         </code>
                       </pre>
                     ) : (
-                      <code className={className} {...props}>
+                      <code className={`${className} bg-gray-200 rounded px-1`} {...props}>
                         {children}
                       </code>
                     )
@@ -256,10 +224,43 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
           </div>
         ))}
         {isLoading && (
-          <div className="text-center">
-            AI已经思考了 {elapsedTime.toFixed(3)} 秒...
+          <div className="text-center py-2 text-gray-600 animate-pulse">
+            AI思考中... {elapsedTime.toFixed(1)} 秒
           </div>
         )}
+      </div>
+      <div className="mb-4 flex flex-wrap justify-between items-center">
+        <div className="flex flex-wrap">
+          {presetTags.map((tag, index) => (
+            <button
+              key={index}
+              onClick={() => handlePresetTag(tag)}
+              className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 mb-2 px-3 py-1 rounded-full hover:bg-blue-200 transition duration-300"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center">
+          <label className="flex items-center mr-4 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useWebSearch}
+              onChange={(e) => setUseWebSearch(e.target.checked)}
+              className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+            />
+            <span className="ml-2 text-sm text-gray-700">联网搜索</span>
+          </label>
+          {status && <div className="text-sm text-gray-600">{status}</div>}
+          {messages.length > 0 && (
+            <button
+              onClick={handleClearChat}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm ml-4 transition duration-300"
+            >
+              清空对话
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex">
         <input
@@ -267,28 +268,27 @@ const ChatPart = ({ content, contentType, presetTags, messages, onUpdateMessages
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage(inputMessage)}
-          className="flex-grow border rounded-l-lg px-2 py-1"
+          className="flex-grow border border-gray-300 rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="输入消息..."
           disabled={isLoading}
         />
         {isLoading ? (
           <button
             onClick={handleAbort}
-            className="bg-red-500 text-white px-4 py-1 rounded-r-lg"
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-r-lg transition duration-300"
           >
             停止
           </button>
         ) : (
           <button
             onClick={() => handleSendMessage(inputMessage)}
-            className="bg-blue-500 text-white px-4 py-1 rounded-r-lg"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-r-lg transition duration-300"
             disabled={isLoading}
           >
             发送
           </button>
         )}
       </div>
-      {status && <div className="text-sm text-gray-600 mt-2">{status}</div>}
     </div>
   );
 };

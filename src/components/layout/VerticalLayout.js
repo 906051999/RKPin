@@ -83,7 +83,7 @@ export default function Vertical({ content, isLoading, isComplete, totalMessages
         />
       </div>
 
-      <div className="flex-grow overflow-hidden mt-10">
+      <div className="flex-grow overflow-hidden mt-20">
         <Swiper
           modules={[Pagination, Virtual]}
           direction="horizontal"
