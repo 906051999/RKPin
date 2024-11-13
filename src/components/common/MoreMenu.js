@@ -55,7 +55,9 @@ export default function MoreMenu({ isHorizontal, toggleChatBar, showChatBar }) {
             {isHorizontal && (
               <button
                 onClick={() => {
-                  toggleChatBar();
+                  // toggleChatBar();
+                  // setIsOpen(false);
+                  alert('暂时不支持此功能');
                   setIsOpen(false);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
